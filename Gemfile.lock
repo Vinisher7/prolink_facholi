@@ -285,7 +285,12 @@ GEM
     stringio (3.1.7)
     thor (1.4.0)
     timeout (0.4.3)
-    tiny_tds (2.1.7)
+    tiny_tds (3.3.0)
+      bigdecimal (~> 3)
+    tiny_tds (3.3.0-x64-mingw-ucrt)
+      bigdecimal (~> 3)
+    tiny_tds (3.3.0-x86_64-linux-gnu)
+      bigdecimal (~> 3)
     turbo-rails (2.0.16)
       actionpack (>= 7.1.0)
       railties (>= 7.1.0)
@@ -336,7 +341,7 @@ DEPENDENCIES
   sprockets-rails
   sqlite3 (~> 1.6.9)
   stimulus-rails
-  tiny_tds (~> 2.1)
+  tiny_tds (~> 3.3)
   turbo-rails
   tzinfo-data
   web-console
