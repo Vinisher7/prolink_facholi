@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem 'rails', '~> 7.2.2', '>= 7.2.2.1'
+gem 'rails', '~> 8.0.2'
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'sprockets-rails'
 # Gem to connect to the sqlite3 DB [https://github.com/sparklemotion/sqlite3-ruby]
@@ -19,7 +19,7 @@ gem 'turbo-rails'
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem 'stimulus-rails'
 # the gem to connect into a sql server DB https://github.com/rails-sqlserver/tiny_tds
-gem 'activerecord-sqlserver-adapter', '~> 7.2'
+gem 'activerecord-sqlserver-adapter', '~> 8.0'
 gem 'tiny_tds', '~> 2.1'
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem 'jbuilder'
