@@ -20,7 +20,7 @@ gem 'turbo-rails'
 gem 'stimulus-rails'
 # the gem to connect into a sql server DB https://github.com/rails-sqlserver/tiny_tds
 gem 'activerecord-sqlserver-adapter', '~> 7.2'
-gem 'tiny_tds', '~> 2.1'
+gem 'tiny_tds', '~> 3.3'
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem 'jbuilder'
 # Use Redis adapter to run Action Cable in production
