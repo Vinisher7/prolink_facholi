@@ -1,0 +1,2 @@
+class Batelada < ApplicationRecord
+end

@@ -1,0 +1,52 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Sistema de Contingência Facholi</h2>
+    <p class="card-subtitle">
+      Bem-vindo ao sistema independente do ERP para garantir continuidade operacional
+    </p>
+  </div>
+
+  <div class="card-content">
+    <div class="selection-grid">
+      <div class="selection-card" onclick="showPage('ordens-cadastro')">
+        <span class="icon">📋</span>
+        <div class="title">Criar Ordem de Produção</div>
+        <div class="description">
+          Inicie o fluxo de contingência criando uma nova ordem de produção
+        </div>
+      </div>
+
+      <div class="selection-card" onclick="showPage('produtos-cadastro')">
+        <span class="icon">📦</span>
+        <div class="title">Cadastrar Produto</div>
+        <div class="description">
+          Adicione produtos de contingência ao sistema
+        </div>
+      </div>
+
+      <div class="selection-card" onclick="showPage('ordens-listagem')">
+        <span class="icon">📊</span>
+        <div class="title">Visualizar Ordens</div>
+        <div class="description">
+          Acompanhe o status das ordens de produção
+        </div>
+      </div>
+
+      <div class="selection-card" onclick="openReportingServices()">
+        <span class="icon">📈</span>
+        <div class="title">Relatórios</div>
+        <div class="description">
+          Acesse o Reporting Services para gerar relatórios
+        </div>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <div class="title">🚨 Sistema de Contingência</div>
+      <div class="content">
+        Este sistema permite operação independente do ERP principal, garantindo continuidade operacional mesmo com o ERP offline. 
+        Siga o fluxo documentado: selecione a linha → escolha o produto → crie a ordem → adicione os itens.
+      </div>
+    </div>
+  </div>
+</div>

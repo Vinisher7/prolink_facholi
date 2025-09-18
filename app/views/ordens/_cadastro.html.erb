@@ -1,0 +1,147 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Cadastrar Ordem de Produção</h2>
+    <p class="card-subtitle">
+      Siga o fluxo de contingência conforme documentação
+    </p>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-steps">
+      <div class="step active" data-step="1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Selecionar Linha</div>
+      </div>
+      <div class="step" data-step="2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Escolher Produto</div>
+      </div>
+      <div class="step" data-step="3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Criar Ordem</div>
+      </div>
+      <div class="step" data-step="4">
+        <div class="step-circle">4</div>
+        <div class="step-label">Adicionar Itens</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-content">
+    <!-- Etapa 1: Seleção de Linha -->
+    <div class="form-section active" data-section="1">
+      <div class="form-group">
+        <label class="form-label">1️⃣ Selecione a Linha de Produção</label>
+        <div class="info-panel">
+          <div class="title">🏭 Linhas Disponíveis</div>
+          <div class="content">
+            Escolha a linha de produção onde será executada a ordem de contingência.
+          </div>
+        </div>
+        <div class="selection-grid" id="linhasGrid">
+          <!-- Carregado dinamicamente via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 2: Seleção de Produto -->
+    <div class="form-section" data-section="2">
+      <div class="form-group">
+        <label class="form-label">2️⃣ Selecione o Produto</label>
+        <div class="info-panel">
+          <div class="title">📦 Produtos da Linha</div>
+          <div class="content">
+            Produtos compatíveis com a linha selecionada (busca via relacionamento: produtos → modelos → itens → equipamentos → linhas).
+          </div>
+        </div>
+        <div class="selection-grid" id="produtosGrid">
+          <!-- Carregado dinamicamente via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 3: Criação da Ordem -->
+    <div class="form-section" data-section="3">
+      <div class="form-group">
+        <label class="form-label">3️⃣ Configurar Ordem de Produção</label>
+        <div class="info-panel">
+          <div class="title">📋 Dados da Ordem</div>
+          <div class="content">
+            Configure os parâmetros da ordem de produção de contingência.
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Número da OP</label>
+          <input type="number" id="numOrp" class="form-control" placeholder="Ex: 999001" min="1">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quantidade a Produzir</label>
+          <input type="number" id="qtdPrd" class="form-control" placeholder="Ex: 5000.0" step="0.1" min="0.1">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quantidade por Batch</label>
+          <input type="number" id="qtdBat" class="form-control" placeholder="Ex: 100.0" step="0.1" min="0.1">
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 4: Adição de Itens -->
+    <div class="form-section" data-section="4">
+      <div class="form-group">
+        <label class="form-label">4️⃣ Adicionar Componentes à Ordem</label>
+        <div class="info-panel">
+          <div class="title">⚖️ Itens da Ordem</div>
+          <div class="content">
+            Adicione os componentes necessários para a produção com origem "CONTINGENCIA".
+          </div>
+        </div>
+        
+        <div id="itensContainer">
+          <div class="item-form" data-item="0">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: end;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Código Componente</label>
+                <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP001">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Sequência</label>
+                <input type="number" class="form-control item-seq-mod" placeholder="1" min="1">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Quantidade</label>
+                <input type="number" class="form-control item-qtd-uti" placeholder="10.5" step="0.1" min="0.1">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Código Balança</label>
+                <input type="text" class="form-control item-cod-balanca" placeholder="Ex: BAL001">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Ação</label>
+                <button type="button" class="btn btn-secondary" onclick="removeItem(0)" style="padding: 0.75rem;">❌</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="button" class="btn btn-secondary" onclick="addItem()" style="margin-top: 1rem;">
+          ➕ Adicionar Item
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="previousStep()" id="btnPrevious" disabled>
+      ← Anterior
+    </button>
+    <button class="btn btn-primary" onclick="nextStep()" id="btnNext" disabled>
+      Próximo →
+    </button>
+  </div>
+</div>
+
+<!-- Alertas -->
+<div id="alertContainer"></div>

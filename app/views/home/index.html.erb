@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facholi - Sistema de Contingência</title>
+    <%= csrf_meta_tags %>
+    <%= render 'shared/styles' %>
+  </head>
+  <body>
+    <div class="app-container">
+      <%= render 'shared/sidebar' %>
+      
+      <main class="main-content">
+        <%= render 'shared/header' %>
+        
+        <div class="content-wrapper">
+          <!-- DASHBOARD INICIAL -->
+          <div class="page-content active" id="page-dashboard">
+            <%= render 'dashboard/home' %>
+          </div>
+
+          <!-- ORDENS DE PRODUÇÃO - CADASTRO -->
+          <div class="page-content" id="page-ordens-cadastro">
+            <%= render 'ordens/cadastro' %>
+          </div>
+
+          <!-- ORDENS DE PRODUÇÃO - LISTAGEM -->
+          <div class="page-content" id="page-ordens-listagem">
+            <%= render 'ordens/listagem' %>
+          </div>
+
+          <!-- PRODUTOS DE CONTINGÊNCIA - CADASTRO -->
+          <div class="page-content" id="page-produtos-cadastro">
+            <%= render 'produtos/cadastro' %>
+          </div>
+
+          <!-- PRODUTOS DE CONTINGÊNCIA - LISTAGEM -->
+          <div class="page-content" id="page-produtos-listagem">
+            <%= render 'produtos/listagem' %>
+          </div>
+
+          <!-- RELATÓRIOS - LINK EXTERNO -->
+          <div class="page-content" id="page-relatorios">
+            <%= render 'relatorios/external_link' %>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <%= render 'shared/scripts' %>
+  </body>
+</html>

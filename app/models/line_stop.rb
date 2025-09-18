@@ -1,0 +1,2 @@
+class LineStop < ApplicationRecord
+end

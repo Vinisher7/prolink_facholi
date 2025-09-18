@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_linha: MyString
+  cod_eqp: MyString
+
+two:
+  cod_linha: MyString
+  cod_eqp: MyString

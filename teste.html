@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facholi - Sistema de Gestão</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary-color: #ff6b35;
+        --primary-dark: #e55a2b;
+        --sidebar-bg: #2c3e50;
+        --sidebar-hover: #34495e;
+        --text-light: #ecf0f1;
+        --text-muted: #bdc3c7;
+        --border-color: #e9ecef;
+        --success-color: #28a745;
+        --background-color: #f8f9fa;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--background-color);
+        color: #333;
+        overflow-x: hidden;
+      }
+
+      .app-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* ===========================================
+           SIDEBAR - Sistema Expansível Refinado
+        =========================================== */
+      .sidebar {
+        width: 280px;
+        background: var(--sidebar-bg);
+        color: var(--text-light);
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        overflow-y: auto;
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+      }
+
+      .logo-section {
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-dark)
+        );
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .logo-icon {
+        font-size: 1.75rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem;
+        border-radius: 8px;
+      }
+
+      .logo-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+      }
+
+      .nav-menu {
+        padding: 1.5rem 0;
+      }
+
+      .menu-section {
+        margin-bottom: 0.5rem;
+      }
+
+      .menu-item {
+        position: relative;
+      }
+
+      .menu-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.875rem 1.5rem;
+        color: var(--text-light);
+        text-decoration: none;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+
+      .menu-header:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--primary-color);
+      }
+
+      .menu-header.active {
+        background: rgba(255, 107, 53, 0.1);
+        color: var(--primary-color);
+        border-right: 3px solid var(--primary-color);
+      }
+
+      .menu-icon {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .menu-icon .icon {
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .expand-icon {
+        transition: transform 0.25s ease;
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+
+      .menu-header.expanded .expand-icon {
+        transform: rotate(90deg);
+      }
+
+      .submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      .submenu.expanded {
+        max-height: 200px;
+      }
+
+      .submenu-item {
+        display: block;
+        padding: 0.75rem 1.5rem 0.75rem 3.5rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        position: relative;
+      }
+
+      .submenu-item::before {
+        content: "";
+        position: absolute;
+        left: 2.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        transition: all 0.2s ease;
+      }
+
+      .submenu-item:hover {
+        color: var(--primary-color);
+        background: rgba(255, 107, 53, 0.05);
+      }
+
+      .submenu-item:hover::before {
+        background: var(--primary-color);
+        transform: translateY(-50%) scale(1.2);
+      }
+
+      .submenu-item.active {
+        color: var(--primary-color);
+        background: rgba(255, 107, 53, 0.1);
+      }
+
+      .submenu-item.active::before {
+        background: var(--primary-color);
+      }
+
+      /* ===========================================
+           MAIN CONTENT AREA
+        =========================================== */
+      .main-content {
+        flex: 1;
+        margin-left: 280px;
+        background: var(--background-color);
+        min-height: 100vh;
+      }
+
+      .header {
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .page-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--sidebar-bg);
+        margin: 0;
+      }
+
+      .breadcrumb {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      .breadcrumb a {
+        color: #6c757d;
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+
+      .breadcrumb a:hover {
+        color: var(--primary-color);
+      }
+
+      .breadcrumb .current {
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      /* ===========================================
+           CONTENT PAGES - Sistema Multi-Tela
+        =========================================== */
+      .content-wrapper {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .page-content {
+        display: none;
+        animation: fadeInUp 0.4s ease;
+      }
+
+      .page-content.active {
+        display: block;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+      }
+
+      .card-header {
+        padding: 1.75rem 2rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: white;
+      }
+
+      .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--sidebar-bg);
+        margin-bottom: 0.5rem;
+      }
+
+      .card-subtitle {
+        color: #6c757d;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .card-content {
+        padding: 2rem;
+      }
+
+      /* ===========================================
+           PROGRESS STEPS - Para Cadastros
+        =========================================== */
+      .progress-container {
+        padding: 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .progress-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 700px;
+        margin: 0 auto;
+        gap: 2rem;
+      }
+
+      .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        flex: 1;
+      }
+
+      .step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: 60%;
+        width: 100%;
+        height: 2px;
+        background: #ddd;
+        z-index: 1;
+      }
+
+      .step.active:not(:last-child)::after,
+      .step.completed:not(:last-child)::after {
+        background: var(--primary-color);
+      }
+
+      .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 3px solid #e9ecef;
+      }
+
+      .step.active .step-circle {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+      }
+
+      .step.completed .step-circle {
+        background: var(--success-color);
+        color: white;
+        border-color: var(--success-color);
+      }
+
+      .step-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #6c757d;
+        text-align: center;
+      }
+
+      .step.active .step-label {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      /* ===========================================
+           FORMS - Estilização Unificada
+        =========================================== */
+      .form-section {
+        display: none;
+      }
+
+      .form-section.active {
+        display: block;
+        animation: slideInRight 0.3s ease;
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .form-group {
+        margin-bottom: 1.75rem;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: var(--sidebar-bg);
+        font-size: 1rem;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .info-panel {
+        background: rgba(255, 107, 53, 0.05);
+        border-left: 4px solid var(--primary-color);
+        border-radius: 0 10px 10px 0;
+        padding: 1.25rem 1.5rem;
+        margin: 1.5rem 0;
+      }
+
+      .info-panel .title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .info-panel .content {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      /* ===========================================
+           SELECTION GRIDS - Cards Interativos
+        =========================================== */
+      .selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .selection-card {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 2rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        background: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .selection-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #e9ecef;
+        transition: all 0.3s ease;
+      }
+
+      .selection-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-6px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      }
+
+      .selection-card:hover::before {
+        background: var(--primary-color);
+      }
+
+      .selection-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(255, 107, 53, 0.03);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(255, 107, 53, 0.2);
+      }
+
+      .selection-card.selected::before {
+        background: var(--primary-color);
+      }
+
+      .selection-card .icon {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        display: block;
+      }
+
+      .selection-card .title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--sidebar-bg);
+        font-size: 1.2rem;
+      }
+
+      .selection-card .description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        line-height: 1.5;
+      }
+
+      /* ===========================================
+           TABLES - Para Listagens
+        =========================================== */
+      .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      }
+
+      .table-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-dark)
+        );
+        color: white;
+        padding: 1.5rem 2rem;
+      }
+
+      .table-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        border-bottom: 1px solid #f1f3f4;
+      }
+
+      .data-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: var(--sidebar-bg);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .data-table tbody tr {
+        transition: all 0.2s ease;
+      }
+
+      .data-table tbody tr:hover {
+        background: rgba(255, 107, 53, 0.03);
+      }
+
+      .status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .status-ativo {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+      }
+
+      .status-pendente {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+      }
+
+      .status-concluido {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+      }
+
+      /* ===========================================
+           BUTTONS - Sistema Unificado
+        =========================================== */
+      .btn-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+
+      .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-dark)
+        );
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #545b62);
+        color: white;
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      .form-actions {
+        padding: 2rem;
+        background: #f8f9fa;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      /* ===========================================
+           RESPONSIVE DESIGN
+        =========================================== */
+      @media (max-width: 1024px) {
+        .sidebar {
+          width: 240px;
+        }
+
+        .main-content {
+          margin-left: 240px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 100%;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+
+        .sidebar.open {
+          transform: translateX(0);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+
+        .content-wrapper {
+          padding: 1rem;
+        }
+
+        .progress-steps {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .step::after {
+          display: none;
+        }
+
+        .selection-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          padding: 1rem;
+        }
+
+        .page-title {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- ===============================================
+             SIDEBAR - Menu Lateral Expansível
+        =============================================== -->
+      <nav class="sidebar">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">📊</div>
+            <div class="logo-text">Facholi</div>
+          </div>
+        </div>
+
+        <div class="nav-menu">
+          <!-- RELATÓRIOS -->
+          <div class="menu-section">
+            <div class="menu-item">
+              <button class="menu-header" onclick="toggleMenu('relatorios')">
+                <div class="menu-icon">
+                  <span class="icon">📈</span>
+                  <span>Relatórios</span>
+                </div>
+                <span class="expand-icon">▶</span>
+              </button>
+              <div class="submenu" id="submenu-relatorios">
+                <a
+                  href="#"
+                  class="submenu-item"
+                  onclick="showPage('relatorios-listagem')"
+                  >Listagem</a
+                >
+                <a
+                  href="#"
+                  class="submenu-item"
+                  onclick="showPage('relatorios-cadastro')"
+                  >Cadastro</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- ORDENS -->
+          <div class="menu-section">
+            <div class="menu-item">
+              <button
+                class="menu-header expanded"
+                onclick="toggleMenu('ordens')"
+              >
+                <div class="menu-icon">
+                  <span class="icon">📋</span>
+                  <span>Ordens de Produção</span>
+                </div>
+                <span class="expand-icon">▶</span>
+              </button>
+              <div class="submenu expanded" id="submenu-ordens">
+                <a
+                  href="#"
+                  class="submenu-item"
+                  onclick="showPage('ordens-listagem')"
+                  >Listagem</a
+                >
+                <a
+                  href="#"
+                  class="submenu-item active"
+                  onclick="showPage('ordens-cadastro')"
+                  >Cadastro</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- PRODUTOS -->
+          <div class="menu-section">
+            <div class="menu-item">
+              <button class="menu-header" onclick="toggleMenu('produtos')">
+                <div class="menu-icon">
+                  <span class="icon">📦</span>
+                  <span>Produtos</span>
+                </div>
+                <span class="expand-icon">▶</span>
+              </button>
+              <div class="submenu" id="submenu-produtos">
+                <a
+                  href="#"
+                  class="submenu-item"
+                  onclick="showPage('produtos-listagem')"
+                  >Listagem</a
+                >
+                <a
+                  href="#"
+                  class="submenu-item"
+                  onclick="showPage('produtos-cadastro')"
+                  >Cadastro</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- ===============================================
+             MAIN CONTENT - Área Principal
+        =============================================== -->
+      <main class="main-content">
+        <header class="header">
+          <h1 class="page-title" id="pageTitle">Nova Ordem de Produção</h1>
+          <div class="breadcrumb" id="breadcrumb">
+            <a href="#">Ordens</a> > <span class="current">Cadastro</span>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <!-- ===============================================
+                     ORDENS - CADASTRO (Tela Ativa)
+                =============================================== -->
+          <div class="page-content active" id="page-ordens-cadastro">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Cadastrar Nova Ordem</h2>
+                <p class="card-subtitle">
+                  Configure a ordem de produção seguindo as etapas do processo
+                  integrado
+                </p>
+              </div>
+
+              <div class="progress-container">
+                <div class="progress-steps">
+                  <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Produto Acabado</div>
+                  </div>
+                  <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Linha de Produção</div>
+                  </div>
+                  <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Finalização</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-content">
+                <!-- Etapa 1 -->
+                <div class="form-section active" data-section="1">
+                  <div class="form-group">
+                    <label class="form-label"
+                      >Selecione o Produto Acabado</label
+                    >
+                    <div class="info-panel">
+                      <div class="title">💡 Informação</div>
+                      <div class="content">
+                        Escolha o produto final que será produzido. Esta seleção
+                        determinará as linhas compatíveis.
+                      </div>
+                    </div>
+                    <div class="selection-grid">
+                      <div
+                        class="selection-card"
+                        onclick="selectProduct(this, 'produto-a')"
+                      >
+                        <span class="icon">📦</span>
+                        <div class="title">Produto Facholi A</div>
+                        <div class="description">
+                          Produto acabado padrão com especificações regulares
+                        </div>
+                      </div>
+                      <div
+                        class="selection-card"
+                        onclick="selectProduct(this, 'produto-b')"
+                      >
+                        <span class="icon">📦</span>
+                        <div class="title">Produto Facholi B</div>
+                        <div class="description">
+                          Produto acabado especial diferenciado
+                        </div>
+                      </div>
+                      <div
+                        class="selection-card"
+                        onclick="selectProduct(this, 'produto-c')"
+                      >
+                        <span class="icon">📦</span>
+                        <div class="title">Produto Facholi C</div>
+                        <div class="description">
+                          Produto para processo automatizado
+                        </div>
+                      </div>
+                      <div
+                        class="selection-card"
+                        onclick="selectProduct(this, 'produto-d')"
+                      >
+                        <span class="icon">📦</span>
+                        <div class="title">Produto Facholi D</div>
+                        <div class="description">
+                          Produto para processo especializado
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Etapa 2 -->
+                <div class="form-section" data-section="2">
+                  <div class="form-group">
+                    <label class="form-label"
+                      >Selecione a Linha de Produção</label
+                    >
+                    <div class="info-panel">
+                      <div class="title">🏭 Linha de Produção</div>
+                      <div class="content">
+                        Escolha a linha responsável por produzir este produto.
+                      </div>
+                    </div>
+                    <div class="selection-grid" id="linhasGrid"></div>
+                  </div>
+                </div>
+
+                <!-- Etapa 3 -->
+                <div class="form-section" data-section="3">
+                  <div class="form-group">
+                    <label class="form-label">Configurações Finais</label>
+                    <div class="info-panel">
+                      <div class="title">⚖ Finalização</div>
+                      <div class="content">
+                        Complete as informações da ordem de produção.
+                      </div>
+                    </div>
+                    <div class="selection-grid" id="modelosGrid"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Quantidade a Produzir</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      placeholder="Digite a quantidade..."
+                      min="1"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Data Prevista</label>
+                    <input type="date" class="form-control" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  class="btn btn-secondary"
+                  onclick="previousStep()"
+                  id="btnPrevious"
+                  disabled
+                >
+                  ← Anterior
+                </button>
+                <button
+                  class="btn btn-primary"
+                  onclick="nextStep()"
+                  id="btnNext"
+                  disabled
+                >
+                  Próximo →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===============================================
+                     ORDENS - LISTAGEM
+                =============================================== -->
+          <div class="page-content" id="page-ordens-listagem">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Ordens de Produção</h2>
+                <p class="card-subtitle">
+                  Gerencie e monitore todas as ordens de produção
+                </p>
+              </div>
+
+              <div class="table-container">
+                <div class="table-header">
+                  <h3 class="table-title">Lista de Ordens Ativas</h3>
+                </div>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Produto</th>
+                      <th>Linha</th>
+                      <th>Quantidade</th>
+                      <th>Status</th>
+                      <th>Data Criação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>#001</td>
+                      <td>Produto Facholi A</td>
+                      <td>Linha 1 - Automatizada</td>
+                      <td>1.500</td>
+                      <td>
+                        <span class="status-badge status-ativo"
+                          >Em Produção</span
+                        >
+                      </td>
+                      <td>15/09/2025</td>
+                    </tr>
+                    <tr>
+                      <td>#002</td>
+                      <td>Produto Facholi B</td>
+                      <td>Linha 3 - Especializada</td>
+                      <td>800</td>
+                      <td>
+                        <span class="status-badge status-pendente"
+                          >Aguardando</span
+                        >
+                      </td>
+                      <td>14/09/2025</td>
+                    </tr>
+                    <tr>
+                      <td>#003</td>
+                      <td>Produto Facholi C</td>
+                      <td>Linha 4 - Alta Precisão</td>
+                      <td>2.000</td>
+                      <td>
+                        <span class="status-badge status-concluido"
+                          >Concluída</span
+                        >
+                      </td>
+                      <td>13/09/2025</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===============================================
+                     PRODUTOS - LISTAGEM
+                =============================================== -->
+          <div class="page-content" id="page-produtos-listagem">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Listagem de Produtos</h2>
+                <p class="card-subtitle">
+                  Visualize e gerencie todos os produtos cadastrados
+                </p>
+              </div>
+
+              <div class="table-container">
+                <div class="table-header">
+                  <h3 class="table-title">Produtos Cadastrados</h3>
+                </div>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Nome</th>
+                      <th>Categoria</th>
+                      <th>Status</th>
+                      <th>Última Atualização</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>FAC-001</td>
+                      <td>Produto Facholi A</td>
+                      <td>Padrão</td>
+                      <td>
+                        <span class="status-badge status-ativo">Ativo</span>
+                      </td>
+                      <td>16/09/2025</td>
+                    </tr>
+                    <tr>
+                      <td>FAC-002</td>
+                      <td>Produto Facholi B</td>
+                      <td>Especial</td>
+                      <td>
+                        <span class="status-badge status-ativo">Ativo</span>
+                      </td>
+                      <td>15/09/2025</td>
+                    </tr>
+                    <tr>
+                      <td>FAC-003</td>
+                      <td>Produto Facholi C</td>
+                      <td>Automatizado</td>
+                      <td>
+                        <span class="status-badge status-ativo">Ativo</span>
+                      </td>
+                      <td>14/09/2025</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===============================================
+                     PRODUTOS - CADASTRO
+                =============================================== -->
+          <div class="page-content" id="page-produtos-cadastro">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Cadastrar Produto</h2>
+                <p class="card-subtitle">Adicione um novo produto ao sistema</p>
+              </div>
+
+              <div class="card-content">
+                <div class="form-group">
+                  <label class="form-label">Nome do Produto</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Digite o nome do produto..."
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Código do Produto</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Ex: FAC-001"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Categoria</label>
+                  <select class="form-control">
+                    <option>Selecione uma categoria...</option>
+                    <option>Padrão</option>
+                    <option>Especial</option>
+                    <option>Automatizado</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Descrição</label>
+                  <textarea
+                    class="form-control"
+                    rows="3"
+                    placeholder="Descreva o produto..."
+                  ></textarea>
+                </div>
+
+                <div class="btn-group">
+                  <button class="btn btn-secondary">Cancelar</button>
+                  <button class="btn btn-primary">Salvar Produto</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===============================================
+                     RELATÓRIOS - LISTAGEM
+                =============================================== -->
+          <div class="page-content" id="page-relatorios-listagem">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Relatórios Disponíveis</h2>
+                <p class="card-subtitle">
+                  Acesse relatórios de produção e performance
+                </p>
+              </div>
+
+              <div class="selection-grid">
+                <div class="selection-card">
+                  <span class="icon">📊</span>
+                  <div class="title">Produção Diária</div>
+                  <div class="description">
+                    Relatório detalhado da produção por dia
+                  </div>
+                </div>
+                <div class="selection-card">
+                  <span class="icon">📈</span>
+                  <div class="title">Performance Mensal</div>
+                  <div class="description">
+                    Análise de performance das linhas
+                  </div>
+                </div>
+                <div class="selection-card">
+                  <span class="icon">📋</span>
+                  <div class="title">Ordens Concluídas</div>
+                  <div class="description">Histórico de ordens finalizadas</div>
+                </div>
+                <div class="selection-card">
+                  <span class="icon">⚖</span>
+                  <div class="title">Eficiência de Balanças</div>
+                  <div class="description">Performance dos equipamentos</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===============================================
+                     RELATÓRIOS - CADASTRO
+                =============================================== -->
+          <div class="page-content" id="page-relatorios-cadastro">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Criar Relatório</h2>
+                <p class="card-subtitle">
+                  Configure um novo relatório personalizado
+                </p>
+              </div>
+
+              <div class="card-content">
+                <div class="form-group">
+                  <label class="form-label">Tipo de Relatório</label>
+                  <select class="form-control">
+                    <option>Selecione o tipo...</option>
+                    <option>Produção</option>
+                    <option>Performance</option>
+                    <option>Qualidade</option>
+                    <option>Eficiência</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Período</label>
+                  <div style="display: flex; gap: 1rem">
+                    <input
+                      type="date"
+                      class="form-control"
+                      placeholder="Data inicial"
+                    />
+                    <input
+                      type="date"
+                      class="form-control"
+                      placeholder="Data final"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Linhas a Incluir</label>
+                  <div class="selection-grid">
+                    <div class="selection-card" style="padding: 1rem">
+                      <input type="checkbox" style="margin-right: 0.5rem" />
+                      <span>Linha 1 - Automatizada</span>
+                    </div>
+                    <div class="selection-card" style="padding: 1rem">
+                      <input type="checkbox" style="margin-right: 0.5rem" />
+                      <span>Linha 2 - Semi-Auto</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="btn-group">
+                  <button class="btn btn-secondary">Cancelar</button>
+                  <button class="btn btn-primary">Gerar Relatório</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // ===============================================
+      // SISTEMA DE NAVEGAÇÃO E CONTROLE DE MENU
+      // ===============================================
+      let currentStep = 1;
+      let selectedData = { produto: null, linha: null, modelo: null };
+      let currentPage = "ordens-cadastro";
+
+      // Dados do sistema
+      const pageConfig = {
+        "ordens-cadastro": {
+          title: "Nova Ordem de Produção",
+          breadcrumb: 'Ordens > <span class="current">Cadastro</span>',
+        },
+        "ordens-listagem": {
+          title: "Ordens de Produção",
+          breadcrumb: 'Ordens > <span class="current">Listagem</span>',
+        },
+        "produtos-cadastro": {
+          title: "Cadastrar Produto",
+          breadcrumb: 'Produtos > <span class="current">Cadastro</span>',
+        },
+        "produtos-listagem": {
+          title: "Listagem de Produtos",
+          breadcrumb: 'Produtos > <span class="current">Listagem</span>',
+        },
+        "relatorios-cadastro": {
+          title: "Criar Relatório",
+          breadcrumb: 'Relatórios > <span class="current">Cadastro</span>',
+        },
+        "relatorios-listagem": {
+          title: "Relatórios Disponíveis",
+          breadcrumb: 'Relatórios > <span class="current">Listagem</span>',
+        },
+      };
+
+      const linhasPorProduto = {
+        "produto-a": [
+          {
+            id: "linha-1",
+            nome: "Linha 1 - Automatizada",
+            descricao: "Linha totalmente automatizada",
+          },
+          {
+            id: "linha-2",
+            nome: "Linha 2 - Semi-Auto",
+            descricao: "Linha semi-automatizada",
+          },
+        ],
+        "produto-b": [
+          {
+            id: "linha-2",
+            nome: "Linha 2 - Semi-Auto",
+            descricao: "Linha versátil",
+          },
+          {
+            id: "linha-3",
+            nome: "Linha 3 - Especializada",
+            descricao: "Para produtos especiais",
+          },
+        ],
+        "produto-c": [
+          {
+            id: "linha-1",
+            nome: "Linha 1 - Automatizada",
+            descricao: "Alta eficiência",
+          },
+          {
+            id: "linha-4",
+            nome: "Linha 4 - Alta Precisão",
+            descricao: "Precisão extrema",
+          },
+        ],
+        "produto-d": [
+          {
+            id: "linha-5",
+            nome: "Linha 5 - Manual",
+            descricao: "Processo especializado",
+          },
+        ],
+      };
+
+      const modelosPorLinha = {
+        "linha-1": [
+          {
+            id: "modelo-x1",
+            nome: "Balança X1-Auto",
+            descricao: "Alta precisão",
+          },
+        ],
+        "linha-2": [
+          { id: "modelo-y1", nome: "Balança Y1-Hybrid", descricao: "Versátil" },
+        ],
+        "linha-3": [
+          {
+            id: "modelo-z1",
+            nome: "Balança Z1-Special",
+            descricao: "Especializada",
+          },
+        ],
+        "linha-4": [
+          {
+            id: "modelo-w1",
+            nome: "Balança W1-Ultra",
+            descricao: "Ultra precisão",
+          },
+        ],
+        "linha-5": [
+          { id: "modelo-m1", nome: "Balança M1-Manual", descricao: "Manual" },
+        ],
+      };
+
+      // ===============================================
+      // CONTROLE DE MENU EXPANSÍVEL
+      // ===============================================
+      function toggleMenu(menuId) {
+        const submenu = document.getElementById(submenu-${menuId});
+        const header = submenu.previousElementSibling;
+
+        // Fecha outros menus
+        document.querySelectorAll(".submenu").forEach((menu) => {
+          if (menu.id !== submenu-${menuId}) {
+            menu.classList.remove("expanded");
+            menu.previousElementSibling.classList.remove("expanded");
+          }
+        });
+
+        // Toggle do menu atual
+        submenu.classList.toggle("expanded");
+        header.classList.toggle("expanded");
+      }
+
+      // ===============================================
+      // SISTEMA DE NAVEGAÇÃO ENTRE PÁGINAS
+      // ===============================================
+      function showPage(pageId) {
+        // Remove active de todas as páginas
+        document.querySelectorAll(".page-content").forEach((page) => {
+          page.classList.remove("active");
+        });
+
+        // Remove active de todos os submenu items
+        document.querySelectorAll(".submenu-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+
+        // Ativa página atual
+        const targetPage = document.getElementById(page-${pageId});
+        if (targetPage) {
+          targetPage.classList.add("active");
+          currentPage = pageId;
+
+          // Atualiza header
+          if (pageConfig[pageId]) {
+            document.getElementById("pageTitle").textContent =
+              pageConfig[pageId].title;
+            document.getElementById("breadcrumb").innerHTML =
+              pageConfig[pageId].breadcrumb;
+          }
+
+          // Marca item ativo no menu
+          event.target.classList.add("active");
+        }
+      }
+
+      // ===============================================
+      // SISTEMA DE STEPS PARA CADASTRO DE ORDENS
+      // ===============================================
+      function selectProduct(element, productId) {
+        document.querySelectorAll(".selection-card").forEach((card) => {
+          card.classList.remove("selected");
+        });
+
+        element.classList.add("selected");
+        selectedData.produto = productId;
+        document.getElementById("btnNext").disabled = false;
+
+        selectedData.linha = null;
+        selectedData.modelo = null;
+      }
+
+      function selectLinha(element, linhaId) {
+        document
+          .querySelectorAll("#linhasGrid .selection-card")
+          .forEach((card) => {
+            card.classList.remove("selected");
+          });
+
+        element.classList.add("selected");
+        selectedData.linha = linhaId;
+        document.getElementById("btnNext").disabled = false;
+      }
+
+      function selectModelo(element, modeloId) {
+        document
+          .querySelectorAll("#modelosGrid .selection-card")
+          .forEach((card) => {
+            card.classList.remove("selected");
+          });
+
+        element.classList.add("selected");
+        selectedData.modelo = modeloId;
+
+        // Na última etapa, muda o botão para "Finalizar"
+        const btnNext = document.getElementById("btnNext");
+        btnNext.textContent = "Finalizar Ordem";
+        btnNext.disabled = false;
+      }
+
+      function updateStep(step) {
+        document.querySelectorAll(".step").forEach((s) => {
+          const stepNum = parseInt(s.dataset.step);
+          s.classList.remove("active", "completed");
+
+          if (stepNum < step) s.classList.add("completed");
+          else if (stepNum === step) s.classList.add("active");
+        });
+
+        document.querySelectorAll(".form-section").forEach((section) => {
+          section.classList.remove("active");
+        });
+        document
+          .querySelector([data-section="${step}"])
+          .classList.add("active");
+
+        document.getElementById("btnPrevious").disabled = step === 1;
+
+        let canProceed = false;
+        if (step === 1) canProceed = selectedData.produto !== null;
+        else if (step === 2) canProceed = selectedData.linha !== null;
+        else if (step === 3) canProceed = selectedData.modelo !== null;
+
+        document.getElementById("btnNext").disabled = !canProceed;
+      }
+
+      function nextStep() {
+        if (currentStep === 1 && selectedData.produto) {
+          // Carrega linhas baseadas no produto
+          const linhas = linhasPorProduto[selectedData.produto];
+          const linhasGrid = document.getElementById("linhasGrid");
+          linhasGrid.innerHTML = "";
+
+          linhas.forEach((linha) => {
+            const card = document.createElement("div");
+            card.className = "selection-card";
+            card.onclick = () => selectLinha(card, linha.id);
+            card.innerHTML = `
+                        <span class="icon">🏭</span>
+                        <div class="title">${linha.nome}</div>
+                        <div class="description">${linha.descricao}</div>
+                    `;
+            linhasGrid.appendChild(card);
+          });
+
+          currentStep = 2;
+          updateStep(currentStep);
+        } else if (currentStep === 2 && selectedData.linha) {
+          // Carrega modelos baseados na linha
+          const modelos = modelosPorLinha[selectedData.linha];
+          const modelosGrid = document.getElementById("modelosGrid");
+          modelosGrid.innerHTML = "";
+
+          modelos.forEach((modelo) => {
+            const card = document.createElement("div");
+            card.className = "selection-card";
+            card.onclick = () => selectModelo(card, modelo.id);
+            card.innerHTML = `
+                        <span class="icon">⚖</span>
+                        <div class="title">${modelo.nome}</div>
+                        <div class="description">${modelo.descricao}</div>
+                    `;
+            modelosGrid.appendChild(card);
+          });
+
+          currentStep = 3;
+          updateStep(currentStep);
+        } else if (currentStep === 3 && selectedData.modelo) {
+          // Finaliza a ordem
+          alert("Ordem de produção criada com sucesso!");
+          // Aqui você pode adicionar lógica para enviar os dados
+        }
+      }
+
+      function previousStep() {
+        if (currentStep > 1) {
+          currentStep--;
+          updateStep(currentStep);
+
+          // Restaura o texto do botão
+          const btnNext = document.getElementById("btnNext");
+          btnNext.textContent = "Próximo →";
+        }
+      }
+
+      // ===============================================
+      // INICIALIZAÇÃO
+      // ===============================================
+      document.addEventListener("DOMContentLoaded", function () {
+        updateStep(1);
+      });
+    </script>
+  </body>
+</html>

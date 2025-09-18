@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  num_orp: 1
+  dosagem: 1
+  cod_linha: MyString
+  dat_ini: 2025-09-12 15:57:03
+  data_fim: 2025-09-12 15:57:03
+  is_retrabalho: false
+  status: MyString
+
+two:
+  num_orp: 1
+  dosagem: 1
+  cod_linha: MyString
+  dat_ini: 2025-09-12 15:57:03
+  data_fim: 2025-09-12 15:57:03
+  is_retrabalho: false
+  status: MyString

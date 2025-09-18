@@ -1,0 +1,65 @@
+<nav class="sidebar">
+  <div class="logo-section">
+    <div class="logo">
+      <div class="logo-icon">📊</div>
+      <div class="logo-text">Facholi</div>
+    </div>
+  </div>
+
+  <div class="nav-menu">
+    <!-- DASHBOARD -->
+    <div class="menu-item">
+      <button class="menu-header active" onclick="showPage('dashboard')">
+        <div class="menu-icon">
+          <span class="icon">🏠</span>
+          <span>Dashboard</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- ORDENS DE PRODUÇÃO -->
+    <div class="menu-section">
+      <div class="menu-item">
+        <button class="menu-header" onclick="toggleMenu('ordens')">
+          <div class="menu-icon">
+            <span class="icon">📋</span>
+            <span>Ordens de Produção</span>
+          </div>
+          <span class="expand-icon">▶</span>
+        </button>
+        <div class="submenu" id="submenu-ordens">
+          <a href="#" class="submenu-item" onclick="showPage('ordens-cadastro')">Cadastro</a>
+          <a href="#" class="submenu-item" onclick="showPage('ordens-listagem')">Listagem</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUTOS DE CONTINGÊNCIA -->
+    <div class="menu-section">
+      <div class="menu-item">
+        <button class="menu-header" onclick="toggleMenu('produtos')">
+          <div class="menu-icon">
+            <span class="icon">📦</span>
+            <span>Produtos de Contingência</span>
+          </div>
+          <span class="expand-icon">▶</span>
+        </button>
+        
+        <div class="submenu" id="submenu-produtos">
+          <a href="#" class="submenu-item" onclick="showPage('produtos-cadastro')">Cadastro</a>
+          <a href="#" class="submenu-item" onclick="showPage('produtos-listagem')">Listagem</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATÓRIOS -->
+    <div class="menu-item">
+      <button class="menu-header" onclick="showPage('relatorios')">
+        <div class="menu-icon">
+          <span class="icon">📈</span>
+          <span>Relatórios</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</nav>

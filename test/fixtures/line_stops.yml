@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_linha: MyString
+  cod_parada: MyString
+  desc_parada: MyString
+  dat_ini: 2025-09-12 20:47:05
+  dat_fim: 2025-09-12 20:47:05
+
+two:
+  cod_linha: MyString
+  cod_parada: MyString
+  desc_parada: MyString
+  dat_ini: 2025-09-12 20:47:05
+  dat_fim: 2025-09-12 20:47:05

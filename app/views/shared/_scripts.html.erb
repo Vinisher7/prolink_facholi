@@ -1,0 +1,1039 @@
+<script>
+// ===============================================
+// SISTEMA DE CONTINGÊNCIA - ESTRUTURA MODULAR
+// ===============================================
+
+let currentStep = 1;
+let selectedData = {
+  linha: null,
+  produto: null,
+  numOrp: null,
+  qtdPrd: null,
+  qtdBat: null
+};
+let itemCounter = 1;
+
+// Configuração das páginas
+const pageConfig = {
+  'dashboard': {
+    title: 'Dashboard - Sistema de Contingência',
+    breadcrumb: '<span class="current">Dashboard</span>'
+  },
+  'ordens-cadastro': {
+    title: 'Cadastrar Ordem de Produção',
+    breadcrumb: 'Ordens > <span class="current">Cadastro</span>'
+  },
+  'ordens-listagem': {
+    title: 'Ordens de Produção',
+    breadcrumb: 'Ordens > <span class="current">Listagem</span>'
+  },
+  'produtos-cadastro': {
+    title: 'Cadastrar Produto de Contingência',
+    breadcrumb: 'Produtos > <span class="current">Cadastro</span>'
+  },
+  'produtos-listagem': {
+    title: 'Produtos de Contingência',
+    breadcrumb: 'Produtos > <span class="current">Listagem</span>'
+  },
+  'relatorios': {
+    title: 'Relatórios - Reporting Services',
+    breadcrumb: '<span class="current">Relatórios</span>'
+  }
+};
+
+// ===============================================
+// SISTEMA DE EVENTOS CUSTOMIZADOS
+// ===============================================
+
+// Mapeamento de páginas para seus eventos de carregamento
+const pageLoadEvents = {
+  'produtos-cadastro': 'loadProductsForm',
+  'produtos-listagem': 'loadProductsList', 
+  'ordens-cadastro': 'loadOrdersForm',
+  'ordens-listagem': 'loadOrdersList'
+};
+
+// Registra todos os event listeners para carregamento de dados
+function setupPageLoadEvents() {
+  // Evento para carregar formulário de produtos
+  document.addEventListener('loadProductsForm', function() {
+    console.log('🎯 Evento loadProductsForm disparado');
+    loadUnityMeasurements();
+    setupProductForm(); // Configura o formulário quando a página é carregada
+  });
+
+  // Evento para carregar listagem de produtos
+  document.addEventListener('loadProductsList', function() {
+    console.log('🎯 Evento loadProductsList disparado');
+    loadProdutosListagem();
+  });
+
+  // Evento para carregar formulário de ordens
+  document.addEventListener('loadOrdersForm', function() {
+    console.log('🎯 Evento loadOrdersForm disparado');
+    loadLines();
+    resetOrderForm();
+  });
+
+  // Evento para carregar listagem de ordens
+  document.addEventListener('loadOrdersList', function() {
+    console.log('🎯 Evento loadOrdersList disparado');
+    loadOrdersListagem();
+  });
+}
+
+// Dispara evento customizado para uma página específica
+function triggerPageLoadEvent(pageId) {
+  const eventName = pageLoadEvents[pageId];
+  if (eventName) {
+    console.log(`🚀 Disparando evento ${eventName} para página ${pageId}`);
+    const event = new CustomEvent(eventName, { 
+      detail: { pageId: pageId },
+      bubbles: true 
+    });
+    document.dispatchEvent(event);
+  }
+}
+
+// ===============================================
+// INICIALIZAÇÃO
+// ===============================================
+document.addEventListener('DOMContentLoaded', function() {
+  // Configura todos os event listeners
+  setupPageLoadEvents();
+  
+  // Inicializa com dashboard ou último menu aberto
+  const lastActivePage = localStorage.getItem('lastActivePage');
+  if (lastActivePage) {
+    showPage(lastActivePage);
+  } else {
+    updateStep(1);
+  }
+  
+  // Remove a configuração inicial do form - será feito por evento
+  // setupProductForm(); // REMOVIDO - evita duplicação de event listeners
+  
+  // Remove o carregamento inicial das unidades - será feito por evento
+  // loadUnityMeasurements(); // REMOVIDO
+});
+
+// ===============================================
+// NAVEGAÇÃO ENTRE PÁGINAS
+// ===============================================
+function showPage(pageId) {
+  // Remove active de todas as páginas
+  document.querySelectorAll('.page-content').forEach(page => {
+    page.classList.remove('active');
+  });
+
+  // Remove active de todos os menu headers
+  document.querySelectorAll('.menu-header').forEach(header => {
+    header.classList.remove('active');
+  });
+
+  // Remove active de todos os submenu items
+  document.querySelectorAll('.submenu-item').forEach(item => {
+    item.classList.remove('active');
+  });
+
+  // Ativa página atual
+  const targetPage = document.getElementById(`page-${pageId}`);
+  if (targetPage) {
+    targetPage.classList.add('active');
+    
+    // Atualiza header
+    if (pageConfig[pageId]) {
+      const pageTitle = document.getElementById('pageTitle');
+      const breadcrumb = document.getElementById('breadcrumb');
+      
+      if (pageTitle) pageTitle.textContent = pageConfig[pageId].title;
+      if (breadcrumb) breadcrumb.innerHTML = pageConfig[pageId].breadcrumb;
+    }
+
+    // Marca item ativo no menu
+    if (typeof event !== 'undefined' && event && event.target && event.target.classList) {
+      event.target.classList.add('active');
+    }
+    
+    // Salva último menu aberto no localStorage
+    localStorage.setItem('lastActivePage', pageId);
+    
+    // Dispara evento customizado para carregar dados da página
+    // Aguarda um ciclo do event loop para garantir que o DOM esteja atualizado
+    setTimeout(() => {
+      triggerPageLoadEvent(pageId);
+    }, 0);
+  }
+}
+
+function toggleMenu(menuId) {
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  if (!submenu) return;
+  
+  const header = submenu.previousElementSibling;
+
+  // Fecha outros menus
+  document.querySelectorAll('.submenu').forEach(menu => {
+    if (menu.id !== `submenu-${menuId}`) {
+      menu.classList.remove('expanded');
+      menu.previousElementSibling.classList.remove('expanded');
+    }
+  });
+
+  // Toggle do menu atual
+  submenu.classList.toggle('expanded');
+  header.classList.toggle('expanded');
+  
+  // Adiciona evento de clique para fechar menu quando clicar fora
+  setTimeout(() => {
+    if (submenu.classList.contains('expanded')) {
+      document.addEventListener('click', closeMenuOnClickOutside);
+    } else {
+      document.removeEventListener('click', closeMenuOnClickOutside);
+    }
+  }, 10);
+  
+  function closeMenuOnClickOutside(event) {
+    if (!submenu.contains(event.target) && !header.contains(event.target)) {
+      submenu.classList.remove('expanded');
+      header.classList.remove('expanded');
+      document.removeEventListener('click', closeMenuOnClickOutside);
+    }
+  }
+}
+
+// ===============================================
+// MÓDULO: ORDENS DE PRODUÇÃO
+// ===============================================
+
+// PASSO 1: CARREGAR LINHAS
+async function loadLines() {
+  try {
+    showLoading('linhasGrid');
+    
+    const response = await fetch('/fetch_lines_data');
+    const result = await response.json();
+    
+    const linhasGrid = document.getElementById('linhasGrid');
+    if (!linhasGrid) return;
+    
+    linhasGrid.innerHTML = '';
+    
+    if (result.data && result.data.length > 0) {
+      result.data.forEach(linha => {
+        const card = createLineCard(linha);
+        linhasGrid.appendChild(card);
+      });
+    } else {
+      linhasGrid.innerHTML = '<p>Nenhuma linha disponível</p>';
+    }
+    
+    hideLoading('linhasGrid');
+  } catch (error) {
+    console.error('Erro ao carregar linhas:', error);
+    showAlert('Erro ao carregar linhas de produção', 'danger');
+    hideLoading('linhasGrid');
+  }
+}
+
+function createLineCard(linha) {
+  const card = document.createElement('div');
+  card.className = 'selection-card';
+  card.onclick = () => selectLine(card, linha);
+  card.innerHTML = `
+    <span class="icon">🏭</span>
+    <div class="title">${linha.des_linha || linha.cod_linha}</div>
+    <div class="description">Código: ${linha.cod_linha}<br>Capacidade: ${linha.capacidade || 'N/A'}</div>
+  `;
+  return card;
+}
+
+function selectLine(element, linha) {
+  // Remove seleção anterior
+  document.querySelectorAll('#linhasGrid .selection-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  // Seleciona nova linha
+  element.classList.add('selected');
+  selectedData.linha = linha;
+  
+  // Habilita próximo passo
+  const btnNext = document.getElementById('btnNext');
+  if (btnNext) btnNext.disabled = false;
+  
+  // Reset dados posteriores
+  selectedData.produto = null;
+}
+
+// PASSO 2: CARREGAR PRODUTOS DA LINHA
+async function loadProductsByLine(codLinha) {
+  try {
+    showLoading('produtosGrid');
+    
+    const response = await fetch(`/fetch_products_by_line?cod_linha=${codLinha}`);
+    const result = await response.json();
+    
+    const produtosGrid = document.getElementById('produtosGrid');
+    if (!produtosGrid) return;
+    
+    produtosGrid.innerHTML = '';
+    
+    if (result.data && result.data.length > 0) {
+      result.data.forEach(produto => {
+        const card = createProductCard(produto);
+        produtosGrid.appendChild(card);
+      });
+    } else {
+      produtosGrid.innerHTML = '<p>Nenhum produto disponível para esta linha</p>';
+    }
+    
+    hideLoading('produtosGrid');
+  } catch (error) {
+    console.error('Erro ao carregar produtos:', error);
+    showAlert('Erro ao carregar produtos da linha', 'danger');
+    hideLoading('produtosGrid');
+  }
+}
+
+function createProductCard(produto) {
+  const card = document.createElement('div');
+  card.className = 'selection-card';
+  card.onclick = () => selectProduct(card, produto);
+  card.innerHTML = `
+    <span class="icon">📦</span>
+    <div class="title">${produto.des_pro}</div>
+    <div class="description">
+      Código: ${produto.cod_pro}<br>
+      Unidade: ${produto.uni_med}<br>
+      Modelo: ${produto.cod_mod}
+    </div>
+  `;
+  return card;
+}
+
+function selectProduct(element, produto) {
+  // Remove seleção anterior
+  document.querySelectorAll('#produtosGrid .selection-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  // Seleciona novo produto
+  element.classList.add('selected');
+  selectedData.produto = produto;
+  
+  // Habilita próximo passo
+  const btnNext = document.getElementById('btnNext');
+  if (btnNext) btnNext.disabled = false;
+}
+
+// PASSO 3: CRIAR ORDEM DE PRODUÇÃO
+async function createOrder() {
+  try {
+    const numOrp = document.getElementById('numOrp')?.value;
+    const qtdPrd = document.getElementById('qtdPrd')?.value;
+    const qtdBat = document.getElementById('qtdBat')?.value;
+    
+    if (!numOrp || !qtdPrd || !qtdBat) {
+      showAlert('Preencha todos os campos obrigatórios', 'warning');
+      return false;
+    }
+    
+    const orderData = {
+      num_orp: numOrp,
+      cod_linha: selectedData.linha.cod_linha,
+      cod_pro: selectedData.produto.cod_pro,
+      qtd_prd: parseFloat(qtdPrd),
+      qtd_bat: parseFloat(qtdBat)
+    };
+    
+    showLoading('btnNext');
+    
+    const response = await fetch('/create_contingencia_order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      },
+      body: JSON.stringify(orderData)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      selectedData.numOrp = numOrp;
+      selectedData.qtdPrd = qtdPrd;
+      selectedData.qtdBat = qtdBat;
+      
+      showAlert('Ordem criada com sucesso!', 'success');
+      const btnNext = document.getElementById('btnNext');
+      if (btnNext) btnNext.disabled = false;
+      return true;
+    } else {
+      showAlert(result.error || 'Erro ao criar ordem', 'danger');
+      return false;
+    }
+  } catch (error) {
+    console.error('Erro ao criar ordem:', error);
+    showAlert('Erro ao criar ordem de produção', 'danger');
+    return false;
+  } finally {
+    hideLoading('btnNext');
+  }
+}
+
+// PASSO 4: ADICIONAR ITENS À ORDEM
+function addItem() {
+  const container = document.getElementById('itensContainer');
+  if (!container) return;
+  
+  const itemDiv = document.createElement('div');
+  itemDiv.className = 'item-form';
+  itemDiv.setAttribute('data-item', itemCounter);
+  
+  itemDiv.innerHTML = `
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: end;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">Código Componente</label>
+        <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP00${itemCounter + 1}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">Sequência</label>
+        <input type="number" class="form-control item-seq-mod" placeholder="${itemCounter + 1}" min="1" value="${itemCounter + 1}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">Quantidade</label>
+        <input type="number" class="form-control item-qtd-uti" placeholder="10.5" step="0.1" min="0.1">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">Código Balança</label>
+        <input type="text" class="form-control item-cod-balanca" placeholder="Ex: BAL00${itemCounter + 1}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">Ação</label>
+        <button type="button" class="btn btn-secondary" onclick="removeItem(${itemCounter})" style="padding: 0.75rem;">❌</button>
+      </div>
+    </div>
+  `;
+  
+  container.appendChild(itemDiv);
+  itemCounter++;
+}
+
+function removeItem(itemId) {
+  const item = document.querySelector(`[data-item="${itemId}"]`);
+  if (item) {
+    item.remove();
+  }
+}
+
+async function addItemsToOrder() {
+  try {
+    const items = [];
+    const itemForms = document.querySelectorAll('.item-form');
+    
+    itemForms.forEach(form => {
+      const codCmp = form.querySelector('.item-cod-cmp')?.value;
+      const seqMod = form.querySelector('.item-seq-mod')?.value;
+      const qtdUti = form.querySelector('.item-qtd-uti')?.value;
+      const codBalanca = form.querySelector('.item-cod-balanca')?.value;
+      
+      if (codCmp && seqMod && qtdUti && codBalanca) {
+        items.push({
+          num_orp: selectedData.numOrp,
+          cod_cmp: codCmp,
+          seq_mod: parseInt(seqMod),
+          qtd_uti: parseFloat(qtdUti),
+          cod_balanca: codBalanca,
+          origem: 'CONTINGENCIA'
+        });
+      }
+    });
+    
+    if (items.length === 0) {
+      showAlert('Adicione pelo menos um item à ordem', 'warning');
+      return false;
+    }
+    
+    showLoading('btnNext');
+    
+    const response = await fetch('/add_items_to_order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      },
+      body: JSON.stringify({ items: items })
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      showAlert('Ordem de contingência finalizada com sucesso!', 'success');
+      
+      // Reset do formulário
+      resetOrderForm();
+      return true;
+    } else {
+      showAlert(result.error || 'Erro ao adicionar itens', 'danger');
+      return false;
+    }
+  } catch (error) {
+    console.error('Erro ao adicionar itens:', error);
+    showAlert('Erro ao adicionar itens à ordem', 'danger');
+    return false;
+  } finally {
+    hideLoading('btnNext');
+  }
+}
+
+// CONTROLE DE STEPS DAS ORDENS
+function updateStep(step) {
+  currentStep = step;
+  
+  // Atualiza visual dos steps
+  document.querySelectorAll('.step').forEach(s => {
+    const stepNum = parseInt(s.dataset.step);
+    s.classList.remove('active', 'completed');
+    
+    if (stepNum < step) s.classList.add('completed');
+    else if (stepNum === step) s.classList.add('active');
+  });
+  
+  // Mostra seção correspondente
+  document.querySelectorAll('.form-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  const activeSection = document.querySelector(`[data-section="${step}"]`);
+  if (activeSection) activeSection.classList.add('active');
+  
+  // Controla botões
+  const btnPrevious = document.getElementById('btnPrevious');
+  const btnNext = document.getElementById('btnNext');
+  
+  if (btnPrevious) btnPrevious.disabled = step === 1;
+  
+  // Verifica se pode prosseguir
+  let canProceed = false;
+  if (step === 1) canProceed = selectedData.linha !== null;
+  else if (step === 2) canProceed = selectedData.produto !== null;
+  else if (step === 3) canProceed = false; // Será habilitado após validação dos campos
+  else if (step === 4) canProceed = false; // Será habilitado após adicionar itens
+  
+  if (btnNext) {
+    btnNext.disabled = !canProceed;
+    
+    // Atualiza texto do botão
+    if (step === 3) {
+      btnNext.textContent = 'Criar Ordem →';
+    } else if (step === 4) {
+      btnNext.textContent = 'Finalizar Ordem';
+    } else {
+      btnNext.textContent = 'Próximo →';
+    }
+  }
+}
+
+async function nextStep() {
+  if (currentStep === 1 && selectedData.linha) {
+    // Carrega produtos da linha selecionada
+    await loadProductsByLine(selectedData.linha.cod_linha);
+    updateStep(2);
+  } else if (currentStep === 2 && selectedData.produto) {
+    updateStep(3);
+  } else if (currentStep === 3) {
+    // Cria a ordem
+    const success = await createOrder();
+    if (success) {
+      updateStep(4);
+    }
+  } else if (currentStep === 4) {
+    // Adiciona itens e finaliza
+    await addItemsToOrder();
+  }
+}
+
+function previousStep() {
+  if (currentStep > 1) {
+    updateStep(currentStep - 1);
+  }
+}
+
+function resetOrderForm() {
+  currentStep = 1;
+  selectedData = {
+    linha: null,
+    produto: null,
+    numOrp: null,
+    qtdPrd: null,
+    qtdBat: null
+  };
+  
+  // Limpa formulários
+  const numOrp = document.getElementById('numOrp');
+  const qtdPrd = document.getElementById('qtdPrd');
+  const qtdBat = document.getElementById('qtdBat');
+  
+  if (numOrp) numOrp.value = '';
+  if (qtdPrd) qtdPrd.value = '';
+  if (qtdBat) qtdBat.value = '';
+  
+  // Reset itens
+  const container = document.getElementById('itensContainer');
+  if (container) {
+    container.innerHTML = `
+      <div class="item-form" data-item="0">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Código Componente</label>
+            <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP001">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Sequência</label>
+            <input type="number" class="form-control item-seq-mod" placeholder="1" min="1">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Quantidade</label>
+            <input type="number" class="form-control item-qtd-uti" placeholder="10.5" step="0.1" min="0.1">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Código Balança</label>
+            <input type="text" class="form-control item-cod-balanca" placeholder="Ex: BAL001">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Ação</label>
+            <button type="button" class="btn btn-secondary" onclick="removeItem(0)" style="padding: 0.75rem;">❌</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  itemCounter = 1;
+  
+  // Remove seleções
+  document.querySelectorAll('.selection-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  updateStep(1);
+}
+
+async function loadOrdersListagem() {
+  try {
+    const response = await fetch('/list_contingencia_orders');
+    const result = await response.json();
+    
+    const tbody = document.getElementById('ordensListagemBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (result.data && result.data.length > 0) {
+      result.data.forEach(ordem => {
+        const row = createOrderRowListagem(ordem);
+        tbody.appendChild(row);
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhuma ordem encontrada</td></tr>';
+    }
+  } catch (error) {
+    console.error('Erro ao carregar ordens:', error);
+  }
+}
+
+function createOrderRowListagem(ordem) {
+  const row = document.createElement('tr');
+  const statusClass = getStatusClass(ordem.status);
+  const statusText = getStatusText(ordem.status);
+  const createdAt = new Date(ordem.created_at).toLocaleDateString('pt-BR');
+  
+  row.innerHTML = `
+    <td>${ordem.num_orp}</td>
+    <td>${ordem.cod_linha}</td>
+    <td>${ordem.cod_pro}</td>
+    <td>${ordem.qtd_prd}</td>
+    <td>${ordem.qtd_bat}</td>
+    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+    <td>${createdAt}</td>
+  `;
+  return row;
+}
+
+function getStatusClass(status) {
+  switch(status) {
+    case '0': return 'status-pendente';
+    case '1': return 'status-rodando';
+    case '2': return 'status-finalizada';
+    case '3': return 'status-cancelada';
+    default: return 'status-pendente';
+  }
+}
+
+function getStatusText(status) {
+  switch(status) {
+    case '0': return 'Pendente';
+    case '1': return 'Rodando';
+    case '2': return 'Finalizada';
+    case '3': return 'Cancelada';
+    default: return 'Pendente';
+  }
+}
+
+// ===============================================
+// MÓDULO: PRODUTOS DE CONTINGÊNCIA
+// ===============================================
+
+async function loadUnityMeasurements() {
+  console.log('🔄 Iniciando carregamento de unidades de medida...');
+  
+  try {
+    console.log('📡 Fazendo requisição para /list_unity_measurements');
+    const response = await fetch('/list_unity_measurements');
+    console.log('📡 Response status:', response.status);
+    
+    const result = await response.json();
+    console.log('📦 Dados recebidos:', result);
+    
+    const select = document.getElementById('uniMed');
+    console.log('🎯 Elemento select encontrado:', select);
+    console.log('🎯 Página atual ativa:', document.querySelector('.page-content.active')?.id);
+    
+    if (!select) {
+      console.error('❌ Elemento select #uniMed não encontrado!');
+      console.log('🔍 Todos os elementos com ID uniMed:', document.querySelectorAll('#uniMed'));
+      console.log('🔍 Página de produtos visível:', document.getElementById('page-produtos-cadastro')?.style.display);
+      return;
+    }
+    
+    select.innerHTML = '<option value="">Selecione uma unidade...</option>';
+    console.log('🧹 Select limpo, opção padrão adicionada');
+    
+    if (result.data && result.data.length > 0) {
+      console.log(`📋 Processando ${result.data.length} unidades de medida`);
+      result.data.forEach((uom, index) => {
+        const option = document.createElement('option');
+        option.value = uom.uni_med;
+        option.textContent = `${uom.uni_med} - ${uom.des_med}`;
+        select.appendChild(option);
+        console.log(`✅ Opção ${index + 1} adicionada: ${uom.uni_med} - ${uom.des_med}`);
+      });
+      console.log('🎉 Todas as unidades de medida foram carregadas com sucesso!');
+      console.log('📊 Total de opções no select:', select.options.length);
+    } else {
+      console.warn('⚠️ Nenhuma unidade de medida encontrada nos dados');
+    }
+  } catch (error) {
+    console.error('❌ Erro ao carregar unidades:', error);
+  }
+}
+
+function setupProductForm() {
+  const form = document.getElementById('produtoForm');
+  if (!form) return;
+  
+  // Remove event listeners existentes para evitar duplicação
+  const newForm = form.cloneNode(true);
+  form.parentNode.replaceChild(newForm, form);
+  
+  newForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await saveProduto();
+  });
+  
+  // Validação em tempo real
+  const codPro = document.getElementById('codPro');
+  const desPro = document.getElementById('desPro');
+  const uniMed = document.getElementById('uniMed');
+  
+  function validateProductFields() {
+    const btnSalvar = document.getElementById('btnSalvar');
+    if (!btnSalvar) return;
+    
+    const isValid = codPro?.value && desPro?.value && uniMed?.value;
+    btnSalvar.disabled = !isValid;
+  }
+  
+  if (codPro) codPro.addEventListener('input', validateProductFields);
+  if (desPro) desPro.addEventListener('input', validateProductFields);
+  if (uniMed) uniMed.addEventListener('change', validateProductFields);
+}
+
+async function saveProduto() {
+  try {
+    const codPro = document.getElementById('codPro')?.value;
+    const desPro = document.getElementById('desPro')?.value;
+    const uniMed = document.getElementById('uniMed')?.value;
+    
+    if (!codPro || !desPro || !uniMed) {
+      showAlertProdutos('Preencha todos os campos obrigatórios', 'warning');
+      return;
+    }
+    
+    const productData = {
+      cod_pro: codPro,
+      des_pro: desPro,
+      uni_med: uniMed
+    };
+    
+    showLoading('btnSalvar');
+    
+    const response = await fetch('/create_contingencia_product', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      },
+      body: JSON.stringify(productData)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      showAlertProdutos('Produto de contingência criado com sucesso!', 'success');
+      clearForm();
+      
+      // Remove a exibição da listagem de produtos após cadastro
+      // document.getElementById('produtosCriadosCard').style.display = 'block';
+      // loadProdutosCriados();
+    } else {
+      // Trata diferentes tipos de erro com mensagens específicas
+      let errorMessage = 'Erro ao criar produto';
+      
+      if (result.error) {
+        if (Array.isArray(result.error)) {
+          // Se for um array de erros (validações do modelo)
+          errorMessage = result.error.join(', ');
+        } else if (typeof result.error === 'string') {
+          // Se for uma string simples
+          errorMessage = result.error;
+        }
+      }
+      
+      // Mensagens específicas para erros comuns
+      if (errorMessage.includes('cod_pro') && errorMessage.includes('taken')) {
+        errorMessage = 'Código do produto já existe! Use um código diferente.';
+      } else if (errorMessage.includes('Unidade de Medida não encontrada')) {
+        errorMessage = 'Unidade de medida inválida! Selecione uma unidade válida.';
+      } else if (errorMessage.includes('can\'t be blank')) {
+        errorMessage = 'Todos os campos obrigatórios devem ser preenchidos.';
+      }
+      
+      showAlertProdutos(errorMessage, 'danger');
+    }
+  } catch (error) {
+    console.error('Erro ao salvar produto:', error);
+    showAlertProdutos('Erro ao criar produto de contingência', 'danger');
+  } finally {
+    hideLoading('btnSalvar');
+  }
+}
+
+async function loadProdutosCriados() {
+  try {
+    const response = await fetch('/list_contingencia_products');
+    const result = await response.json();
+    
+    const tbody = document.getElementById('produtosCriadosBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (result.data && result.data.length > 0) {
+      // Mostra apenas os 5 mais recentes
+      const recentProducts = result.data.slice(0, 5);
+      recentProducts.forEach(produto => {
+        const row = createProductRowCriados(produto);
+        tbody.appendChild(row);
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao carregar produtos criados:', error);
+  }
+}
+
+async function loadProdutosListagem() {
+  try {
+    document.getElementById('loadingProdutos').style.display = 'block';
+    
+    const response = await fetch('/list_contingencia_products');
+    const result = await response.json();
+    
+    const tbody = document.getElementById('produtosListagemBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (result.data && result.data.length > 0) {
+      result.data.forEach(produto => {
+        const row = createProductRowListagem(produto);
+        tbody.appendChild(row);
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
+    }
+  } catch (error) {
+    console.error('Erro ao carregar produtos:', error);
+    const tbody = document.getElementById('produtosListagemBody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao carregar produtos</td></tr>';
+    }
+  } finally {
+    document.getElementById('loadingProdutos').style.display = 'none';
+  }
+}
+
+function createProductRowCriados(produto) {
+  const row = document.createElement('tr');
+  const createdAt = new Date(produto.created_at).toLocaleDateString('pt-BR');
+  
+  row.innerHTML = `
+    <td>${produto.cod_pro}</td>
+    <td>${produto.des_pro}</td>
+    <td>${produto.uni_med}</td>
+    <td>${createdAt}</td>
+  `;
+  return row;
+}
+
+function createProductRowListagem(produto) {
+  const row = document.createElement('tr');
+  const createdAt = new Date(produto.created_at).toLocaleDateString('pt-BR');
+  const updatedAt = new Date(produto.updated_at).toLocaleDateString('pt-BR');
+  
+  row.innerHTML = `
+    <td>${produto.id}</td>
+    <td>${produto.cod_pro}</td>
+    <td>${produto.des_pro}</td>
+    <td>${produto.uni_med}</td>
+    <td>${createdAt}</td>
+    <td>${updatedAt}</td>
+  `;
+  return row;
+}
+
+function clearForm() {
+  const codPro = document.getElementById('codPro');
+  const desPro = document.getElementById('desPro');
+  const uniMed = document.getElementById('uniMed');
+  
+  if (codPro) codPro.value = '';
+  if (desPro) desPro.value = '';
+  if (uniMed) uniMed.value = '';
+  
+  const btnSalvar = document.getElementById('btnSalvar');
+  if (btnSalvar) btnSalvar.disabled = true;
+}
+
+// ===============================================
+// MÓDULO: RELATÓRIOS
+// ===============================================
+function openReportingServices() {
+  // Configurar URL do Reporting Services
+  const reportingUrl = 'http://seu-servidor-reports/Reports'; // Substitua pela URL real
+  
+  showAlert('Redirecionando para o Reporting Services...', 'success');
+  
+  // Abre em nova aba
+  setTimeout(() => {
+    window.open(reportingUrl, '_blank');
+  }, 1000);
+}
+
+// ===============================================
+// UTILITÁRIOS
+// ===============================================
+function showAlert(message, type = 'success') {
+  const alertContainer = document.getElementById('alertContainer');
+  if (!alertContainer) return;
+  
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message;
+  
+  alertContainer.appendChild(alert);
+  
+  // Remove após 5 segundos
+  setTimeout(() => {
+    alert.remove();
+  }, 5000);
+}
+
+function showAlertProdutos(message, type = 'success') {
+  const alertContainer = document.getElementById('alertContainerProdutos');
+  if (!alertContainer) return;
+  
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message;
+  
+  alertContainer.appendChild(alert);
+  
+  // Remove após 5 segundos
+  setTimeout(() => {
+    alert.remove();
+  }, 5000);
+}
+
+function showLoading(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.classList.add('loading');
+    if (element.tagName === 'BUTTON') {
+      element.innerHTML = '<span class="spinner"></span>Carregando...';
+      element.disabled = true;
+    }
+  }
+}
+
+function hideLoading(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.classList.remove('loading');
+    if (element.tagName === 'BUTTON') {
+      element.disabled = false;
+      
+      // Restaura texto original baseado no ID do botão
+      if (elementId === 'btnNext') {
+        element.innerHTML = 'Próximo <span class="icon">→</span>';
+      } else if (elementId === 'btnSalvar') {
+        element.innerHTML = 'Salvar <span class="icon">✓</span>';
+      } else {
+        element.innerHTML = 'Concluído';
+      }
+      if (elementId === 'btnNext') {
+        if (currentStep === 3) {
+          element.textContent = 'Criar Ordem →';
+        } else if (currentStep === 4) {
+          element.textContent = 'Finalizar Ordem';
+        } else {
+          element.textContent = 'Próximo →';
+        }
+      } else if (elementId === 'btnSalvar') {
+        element.textContent = '💾 Salvar Produto';
+      }
+    }
+  }
+}
+
+// Validação em tempo real dos campos da ordem - usando evento
+document.addEventListener('loadOrdersForm', function() {
+  const numOrp = document.getElementById('numOrp');
+  const qtdPrd = document.getElementById('qtdPrd');
+  const qtdBat = document.getElementById('qtdBat');
+  
+  function validateOrderFields() {
+    if (currentStep === 3) {
+      const btnNext = document.getElementById('btnNext');
+      if (btnNext) {
+        const isValid = numOrp?.value && qtdPrd?.value && qtdBat?.value;
+        btnNext.disabled = !isValid;
+      }
+    }
+  }
+  
+  if (numOrp) numOrp.addEventListener('input', validateOrderFields);
+  if (qtdPrd) qtdPrd.addEventListener('input', validateOrderFields);
+  if (qtdBat) qtdBat.addEventListener('input', validateOrderFields);
+});
+</script>

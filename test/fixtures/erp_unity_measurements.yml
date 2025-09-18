@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  uni_med: MyString
+  des_med: MyString
+
+two:
+  uni_med: MyString
+  des_med: MyString

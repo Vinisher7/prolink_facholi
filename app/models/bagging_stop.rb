@@ -1,0 +1,2 @@
+class BaggingStop < ApplicationRecord
+end

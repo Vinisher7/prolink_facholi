@@ -1,0 +1,2 @@
+class BaggingWeight < ApplicationRecord
+end

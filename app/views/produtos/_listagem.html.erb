@@ -1,0 +1,46 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Produtos de Contingência</h2>
+    <p class="card-subtitle">
+      Visualize todos os produtos de contingência cadastrados
+    </p>
+  </div>
+
+  <div class="card-content">
+    <div class="btn-group" style="margin-bottom: 2rem;">
+      <button class="btn btn-primary" onclick="showPage('produtos-cadastro')">
+        ➕ Cadastrar Novo Produto
+      </button>
+      <button class="btn btn-secondary" onclick="loadProdutosListagem()">
+        🔄 Atualizar Lista
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Lista de Produtos de Contingência</h3>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th>Unidade de Medida</th>
+          <th>Data Criação</th>
+          <th>Última Atualização</th>
+        </tr>
+      </thead>
+      <tbody id="produtosListagemBody">
+        <!-- Carregado dinamicamente -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="loadingProdutos" style="display: none; text-align: center; padding: 2rem;">
+  <div class="spinner" style="margin: 0 auto;"></div>
+  <p>Carregando produtos...</p>
+</div>

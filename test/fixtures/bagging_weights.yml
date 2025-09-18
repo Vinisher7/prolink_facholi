@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  dt_ini: 2025-09-12 20:44:44
+  ensacadeira: MyString
+  peso_saco: 1.5
+  num_orp: MyString
+  temp_ciclo: MyString
+
+two:
+  dt_ini: 2025-09-12 20:44:44
+  ensacadeira: MyString
+  peso_saco: 1.5
+  num_orp: MyString
+  temp_ciclo: MyString

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_rot: MyString
+  seq_rot: 1
+  tmp_fix: 1.5
+  tmp_prp: 1.5
+  cod_cre: MyString
+
+two:
+  cod_rot: MyString
+  seq_rot: 1
+  tmp_fix: 1.5
+  tmp_prp: 1.5
+  cod_cre: MyString

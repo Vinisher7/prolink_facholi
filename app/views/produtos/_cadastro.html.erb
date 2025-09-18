@@ -1,0 +1,80 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Cadastrar Produto de Contingência</h2>
+    <p class="card-subtitle">
+      Adicione produtos emergenciais conforme PASSO 3 da documentação
+    </p>
+  </div>
+
+  <div class="card-content">
+    <div class="info-panel">
+      <div class="title">📦 Produto de Contingência</div>
+      <div class="content">
+        Produtos de contingência são criados para situações emergenciais quando o ERP principal está offline. 
+        O sistema valida se a unidade de medida existe em erp_unity_measurements.
+      </div>
+    </div>
+
+    <form id="produtoForm">
+      <div class="form-group">
+        <label class="form-label">Código do Produto *</label>
+        <input type="text" id="codPro" class="form-control" placeholder="Ex: CONT_PROD001" maxlength="14" required>
+        <small style="color: #6c757d;">Máximo 14 caracteres - deve ser único</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição do Produto *</label>
+        <input type="text" id="desPro" class="form-control" placeholder="Ex: Produto de Contingência" maxlength="100" required>
+        <small style="color: #6c757d;">Máximo 100 caracteres</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Unidade de Medida *</label>
+        <select id="uniMed" class="form-control" required>
+          <option value="">Selecione uma unidade...</option>
+          <!-- Carregado dinamicamente -->
+        </select>
+        <small style="color: #6c757d;">Deve existir em erp_unity_measurements</small>
+      </div>
+
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+          🔄 Limpar
+        </button>
+        <button type="submit" class="btn btn-primary" id="btnSalvar">
+          💾 Salvar Produto
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Alertas -->
+<div id="alertContainerProdutos"></div>
+
+<!-- Lista de Produtos Recém Criados -->
+<div class="card" id="produtosCriadosCard" style="display: none;">
+  <div class="card-header">
+    <h2 class="card-title">Produtos Criados</h2>
+    <p class="card-subtitle">Produtos de contingência adicionados recentemente</p>
+  </div>
+  
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Lista de Produtos</h3>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th>Unidade</th>
+          <th>Data Criação</th>
+        </tr>
+      </thead>
+      <tbody id="produtosCriadosBody">
+        <!-- Carregado dinamicamente -->
+      </tbody>
+    </table>
+  </div>
+</div>

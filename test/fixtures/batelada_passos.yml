@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  batelada: one
+  seq: 1
+  cod_eqp: MyString
+  cod_pro: MyString
+  qtd_prev: 1.5
+  qtd_real: 1.5
+  histerese: 1.5
+  tolerancia: 1.5
+  dat_ini: 2025-09-12 16:02:22
+  dat_fim: 2025-09-12 16:02:22
+  user: MyString
+
+two:
+  batelada: two
+  seq: 1
+  cod_eqp: MyString
+  cod_pro: MyString
+  qtd_prev: 1.5
+  qtd_real: 1.5
+  histerese: 1.5
+  tolerancia: 1.5
+  dat_ini: 2025-09-12 16:02:22
+  dat_fim: 2025-09-12 16:02:22
+  user: MyString

@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_mod: MyString
+  ver_mod: 1
+  seq_mod: 1
+  cod_cmp: MyString
+  qtd_uti: 1.5
+  cod_balanca: 1
+
+two:
+  cod_mod: MyString
+  ver_mod: 1
+  seq_mod: 1
+  cod_cmp: MyString
+  qtd_uti: 1.5
+  cod_balanca: 1

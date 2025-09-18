@@ -1,0 +1,31 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_ori: MyString
+  num_orp: 1
+  des_orp: MyString
+  cod_pro: MyString
+  cod_mod: MyString
+  cod_rot: MyString
+  ver_mod: 1
+  ver_rot: 1
+  dat_emi: 2025-09-11
+  dat_ent: 2025-09-11
+  qtd_prd: 1.5
+  num_pri: 1
+  qtd_bat: MyString
+
+two:
+  cod_ori: MyString
+  num_orp: 1
+  des_orp: MyString
+  cod_pro: MyString
+  cod_mod: MyString
+  cod_rot: MyString
+  ver_mod: 1
+  ver_rot: 1
+  dat_emi: 2025-09-11
+  dat_ent: 2025-09-11
+  qtd_prd: 1.5
+  num_pri: 1
+  qtd_bat: MyString

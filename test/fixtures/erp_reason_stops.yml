@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_gru: MyString
+  cod_mtv: MyString
+  des_mtv: MyString
+  abr_mtv: MyString
+  par_lin: false
+  tip_par: 1
+  sit_mtv: false
+
+two:
+  cod_gru: MyString
+  cod_mtv: MyString
+  des_mtv: MyString
+  abr_mtv: MyString
+  par_lin: false
+  tip_par: 1
+  sit_mtv: false

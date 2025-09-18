@@ -1,0 +1,37 @@
+# Este arquivo configura a conexão com o banco de dados para três ambientes:
+# development, test, e production.
+#
+# A configuração de desenvolvimento usa SQL Server.
+# A configuração de teste usa SQLite para testes mais rápidos e isolados.
+
+default: &default
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+
+development:
+  primary:
+    <<: *default
+    adapter: sqlserver
+    host: 192.168.0.2
+    database: SUPERVISORIO_LINK
+    username: sa
+    password: Gr@fcet01
+
+# ATENÇÃO: O banco de dados de teste será apagado e recriado
+# a partir do seu banco de dados de desenvolvimento ao rodar "rake".
+test:
+  primary:
+    <<: *default
+    adapter: sqlite3
+    database: storage/test.sqlite3
+
+production:
+  <<: *default
+  adapter: sqlserver
+  # As credenciais de produção NUNCA devem ser escritas diretamente aqui.
+  # Use Rails credentials, environment variables, ou outras formas seguras.
+  # Exemplo usando environment variables:
+  # host: <%= ENV['DATABASE_HOST'] %>
+  # database: <%= ENV['DATABASE_NAME'] %>
+  # username: <%= ENV['DATABASE_USER'] %>
+  # password: <%= ENV['DATABASE_PASSWORD'] %>

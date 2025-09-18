@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_turno: MyString
+  des_turno: MyString
+  hora_ini: 2025-09-12 15:32:00
+  hora_fim: 2025-09-12 15:32:00
+  dia: MyString
+  tipo: MyString
+
+two:
+  cod_turno: MyString
+  des_turno: MyString
+  hora_ini: 2025-09-12 15:32:00
+  hora_fim: 2025-09-12 15:32:00
+  dia: MyString
+  tipo: MyString

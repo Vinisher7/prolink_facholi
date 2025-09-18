@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cod_rot: MyString
+  ver_rot: 1
+  des_rot: MyString
+  qtd_base: 1.5
+  lot_rec: 1.5
+
+two:
+  cod_rot: MyString
+  ver_rot: 1
+  des_rot: MyString
+  qtd_base: 1.5
+  lot_rec: 1.5
