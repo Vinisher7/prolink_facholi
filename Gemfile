@@ -5,7 +5,7 @@ gem 'rails', '~> 7.2.2', '>= 7.2.2.1'
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'sprockets-rails'
 # Gem to connect to the sqlite3 DB [https://github.com/sparklemotion/sqlite3-ruby]
-gem 'sqlite3', '~> 1.6.9'
+gem 'sqlite3', '~> 2.7.3'
 # Gem interactor for creating services [https://github.com/collectiveidea/interactor]
 gem 'interactor', '~> 3.0'
 # Use the Puma web server [https://github.com/puma/puma]
