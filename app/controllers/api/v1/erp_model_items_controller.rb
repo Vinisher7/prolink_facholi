@@ -1,6 +1,6 @@
 class Api::V1::ErpModelItemsController < Api::V1::ApplicationController
   before_action :authorize_user!
-  include Pagy::Backend
+  
   def create
     unless model_items_params[:items].is_a?(Array)
       return render json: { 'error': 'O atributo items dos Itens de Modelo deve ser um vetor!' }, status: :bad_request
@@ -33,15 +33,14 @@ class Api::V1::ErpModelItemsController < Api::V1::ApplicationController
   end
 
   def index
-    pagy, model_items = pagy(ErpModelItem.order(created_at: :desc))
-    pagination = {
-      page: pagy.page,
-      pages: pagy.pages,
-      count: pagy.count,
-      prev: pagy.prev,
-      next: pagy.next
-    }
-    render json: { pagination: pagination, data: model_items }
+    response = PaginationFormatter::PaginationFormatterService.call(
+      entity: ErpModelItem.order(created_at: :desc),
+      page: params[:page]
+    )
+    
+    return render json: { error: response.table[:message] }, status: :bad_request unless response.success?
+    
+    render json: { pagination: response.response[:pagination], data: response.response[:entity_data] }
   end
 
   private

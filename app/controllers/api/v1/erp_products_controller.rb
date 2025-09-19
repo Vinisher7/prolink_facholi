@@ -2,7 +2,6 @@
 
 class Api::V1::ErpProductsController < Api::V1::ApplicationController
   before_action :authorize_user!
-  include Pagy::Backend
 
   def create
     unless products_params[:items].is_a?(Array)
@@ -36,9 +35,14 @@ class Api::V1::ErpProductsController < Api::V1::ApplicationController
   end
 
   def index
-    pagy, products = pagy(ErpProduct.order(created_at: :desc))
+    response = PaginationFormatter::PaginationFormatterService.call(
+      page: params[:page],
+      entity: ErpProduct.order(created_at: :desc) 
+    )
 
-    render json: { pagination: pagination(pagy), data: products }
+    return render json: { error: response.table[:message] }, status: :bad_request unless response.success?
+    
+    render json: { pagination: response.response[:pagination], data: response.response[:entity_data] }
   end
 
   def fetch_products_by_cod_linha
@@ -49,26 +53,21 @@ class Api::V1::ErpProductsController < Api::V1::ApplicationController
                     status: :bad_request
     end
 
-    pagy, products = pagy(ErpProduct
+    response = PaginationFormatter::PaginationFormatterService.call(
+      page: params[:page],
+      entity: ErpProduct
       .joins('JOIN erp_model_generals mg ON erp_products.cod_mod = mg.cod_mod')
       .joins('JOIN erp_model_items mi ON mi.cod_mod = mg.cod_mod')
       .joins('JOIN equipment_lines el ON el.cod_eqp = mi.cod_balanca')
-      .where('el.cod_linha = ?', cod_linha))
+      .where('el.cod_linha = ?', cod_linha) 
+    )
 
-    render json: { pagination: pagination(pagy), 'data': products }
+    return render json: { error: response.table[:message] }, status: :bad_request unless response.success?
+
+    render json: { pagination: response.response[:pagination], data: response.response[:entity_data] }
   end
 
   private
-
-  def pagination(pagy)
-    {
-      page: pagy.page,
-      pages: pagy.pages,
-      count: pagy.count,
-      prev: pagy.prev,
-      next: pagy.next
-    }
-  end
 
   def products_params
     params.require(:erp_products).permit(

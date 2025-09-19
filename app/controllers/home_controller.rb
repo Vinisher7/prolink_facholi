@@ -10,8 +10,7 @@ class HomeController < ApplicationController
 
   # PASSO 1: Listar Linhas Disponíveis (GET /api/v1/lines)
   def fetch_lines_data
-    response = Line.all
-    render json: { data: response }, status: :ok
+    @response = Lines::LinesListingService.call
   end
 
   # PASSO 2: Buscar Produtos por Linha (GET /api/v1/erp_products/fetch_products_by_cod_linha)

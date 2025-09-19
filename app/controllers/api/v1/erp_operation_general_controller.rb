@@ -1,6 +1,5 @@
 class Api::V1::ErpOperationGeneralController < Api::V1::ApplicationController
   before_action :authorize_user!
-  include Pagy::Backend
 
   def create
     unless operation_general_params[:items].is_a?(Array)
@@ -33,15 +32,14 @@ class Api::V1::ErpOperationGeneralController < Api::V1::ApplicationController
   end
 
   def index
-    pagy, operation_general = pagy(ErpOperationGeneral.order(created_at: :desc))
-    pagination = {
-      page: pagy.page,
-      pages: pagy.pages,
-      count: pagy.count,
-      prev: pagy.prev,
-      next: pagy.next
-    }
-    render json: { pagination: pagination, data: operation_general }
+    response = PaginationFormatter::PaginationFormatterService.call(
+      page: params[:page],
+      entity: ErpOperationGeneral.order(created_at: :desc) 
+    )
+
+    return render json: { error: response.table[:message] }, status: :bad_request unless response.success?
+    
+    render json: { pagination: response.response[:pagination], data: response.response[:entity_data] }, status: :ok
   end
 
   private

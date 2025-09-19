@@ -41,15 +41,14 @@ class Api::V1::ErpProductionOrdersController < Api::V1::ApplicationController
   end
 
   def index
-    pagy, production_orders = pagy(ErpProductionOrder.order(created_at: :desc))
-    pagination = {
-      page: pagy.page,
-      pages: pagy.pages,
-      count: pagy.count,
-      prev: pagy.prev,
-      next: pagy.next
-    }
-    render json: { pagination: pagination, data: production_orders }
+    response = PaginationFormatter::PaginationFormatterService.call(
+      page: params[:page],
+      entity: ErpProductionOrder.order(created_at: :desc) 
+    )
+    
+    return render json: { error: response.table[:message] }, status: :bad_request unless response.success?
+
+    render json: { pagination: response.response[:pagination], data: response.response[:entity_data] }
   end
 
   private
