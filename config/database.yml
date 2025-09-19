@@ -12,7 +12,7 @@ development:
   primary:
     <<: *default
     adapter: sqlserver
-    host: 192.168.0.2
+    host: localhost
     database: SUPERVISORIO_LINK
     username: sa
     password: Gr@fcet01
