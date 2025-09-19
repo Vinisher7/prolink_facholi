@@ -1,0 +1,59 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Ordens de Contingência</h2>
+    <p class="card-subtitle">
+      Gerencie e monitore todas as ordens de produção de contingência
+    </p>
+    <div class="card-actions">
+      <%= link_to "Nova Ordem", new_contingencia_ordem_path, class: "btn btn-primary" %>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Lista de Ordens Ativas</h3>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número OP</th>
+          <th>Linha</th>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Batch</th>
+          <th>Status</th>
+          <th>Data Criação</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @contingencia_ordens.each do |ordem| %>
+          <tr>
+            <td><%= ordem.num_orp %></td>
+            <td><%= ordem.cod_linha %></td>
+            <td><%= ordem.cod_pro %></td>
+            <td><%= ordem.qtd_prd %></td>
+            <td><%= ordem.qtd_bat %></td>
+            <td>
+              <span class="status-badge status-<%= ordem.status&.downcase %>">
+                <%= ordem.status %>
+              </span>
+            </td>
+            <td><%= ordem.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+            <td>
+              <%= link_to "Ver", contingencia_ordem_path(ordem), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "Editar", edit_contingencia_ordem_path(ordem), class: "btn btn-sm btn-primary" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    
+    <% if @contingencia_ordens.empty? %>
+      <div class="empty-state">
+        <p>Nenhuma ordem de contingência encontrada.</p>
+        <%= link_to "Criar primeira ordem", new_contingencia_ordem_path, class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

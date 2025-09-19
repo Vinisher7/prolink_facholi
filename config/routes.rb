@@ -9,17 +9,23 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root 'home#index'
 
-  # Home routes para funcionalidades de contingência
-  get '/fetch_lines_data', to: 'home#fetch_lines_data'
-  get '/fetch_products_by_line', to: 'home#fetch_products_by_line'
-  post '/create_contingencia_order', to: 'home#create_contingencia_order'
-  post '/add_items_to_order', to: 'home#add_items_to_order'
-  get '/list_contingencia_orders', to: 'home#list_contingencia_orders'
+  # Rotas para Ordens de Contingência (seguindo padrão RESTful)
+  resources :contingencia_ordens, path: 'contingencia-ordens' do
+    member do
+      post :add_items
+    end
+    collection do
+      get :fetch_products_by_line
+      get :fetch_lines
+    end
+  end
 
-  # Produtos de contingência
-  post '/create_contingencia_product', to: 'home#create_contingencia_product'
-  get '/list_contingencia_products', to: 'home#list_contingencia_products'
-  get '/list_unity_measurements', to: 'home#list_unity_measurements'
+  # Rotas para Produtos de Contingência (seguindo padrão RESTful)
+  resources :contingencia_produtos, path: 'contingencia-produtos' do
+    collection do
+      get :fetch_unity_measurements
+    end
+  end
 
   namespace :api do
     namespace :v1 do
@@ -40,6 +46,7 @@ Rails.application.routes.draw do
       resources :erp_equipments, only: %i[create index]
       resources :lines, only: [:index]
 
+      # Mantendo namespace de contingência apenas para APIs externas (se necessário)
       namespace :contingencia do
         resources :contingencia_products, only: %i[create index]
         resources :contingencia_production_orders, only: %i[create index]
