@@ -1,0 +1,85 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Nova Ordem de Contingência</h2>
+    <p class="card-subtitle">
+      Crie uma nova ordem de produção de contingência
+    </p>
+  </div>
+
+  <div class="form-container">
+    <%= form_with model: @contingencia_ordem, url: contingencia_ordens_path, local: true, class: "form" do |form| %>
+      <% if @contingencia_ordem.errors.any? %>
+        <div class="alert alert-danger">
+          <h4><%= pluralize(@contingencia_ordem.errors.count, "erro") %> impediram que a ordem fosse salva:</h4>
+          <ul>
+            <% @contingencia_ordem.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :num_orp, "Número da OP", class: "form-label" %>
+          <%= form.text_field :num_orp, class: "form-input", placeholder: "Digite o número da OP" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :cod_linha, "Linha de Produção", class: "form-label" %>
+          <%= form.select :cod_linha, 
+                options_from_collection_for_select(@lines, :cod_linha, :des_linha, @contingencia_ordem.cod_linha),
+                { prompt: "Selecione uma linha" },
+                { class: "form-select", id: "linha-select" } %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :cod_pro, "Código do Produto", class: "form-label" %>
+          <%= form.text_field :cod_pro, class: "form-input", placeholder: "Digite o código do produto", id: "produto-input" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :qtd_prd, "Quantidade a Produzir", class: "form-label" %>
+          <%= form.number_field :qtd_prd, class: "form-input", placeholder: "Quantidade", step: 0.01 %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :qtd_bat, "Quantidade por Batch", class: "form-label" %>
+          <%= form.number_field :qtd_bat, class: "form-input", placeholder: "Batch", step: 0.01 %>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= form.submit "Criar Ordem", class: "btn btn-primary" %>
+        <%= link_to "Cancelar", contingencia_ordens_path, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Script para buscar produtos por linha
+  document.getElementById('linha-select').addEventListener('change', function() {
+    const codLinha = this.value;
+    if (codLinha) {
+      fetch(`/contingencia-ordens/fetch_products_by_line?cod_linha=${codLinha}`, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.products) {
+          // Aqui você pode implementar um autocomplete ou dropdown para produtos
+          console.log('Produtos disponíveis:', data.products);
+        }
+      })
+      .catch(error => console.error('Erro ao buscar produtos:', error));
+    }
+  });
+</script>

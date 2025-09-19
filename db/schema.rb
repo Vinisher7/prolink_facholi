@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_18_054800) do
+ActiveRecord::Schema[7.2].define(version: 2025_09_19_145513) do
   create_table "bagging_stops", force: :cascade do |t|
     t.datetime "ini_parada"
     t.datetime "fim_parada"
@@ -252,7 +252,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_18_054800) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, where: "([reset_password_token] IS NOT NULL)"
   end
 
   add_foreign_key "batelada_passos", "bateladas"

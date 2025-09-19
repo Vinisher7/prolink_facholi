@@ -1,9 +1,21 @@
 module Lines
-    class LinesListingService
-        include Interactor
+  class LinesListingService
+    include Interactor
 
-        def call
-           return Line.all 
+    def call
+      lines = Line.order(:cod_linha)
+      
+      if lines.any?
+        context.response = lines.map do |line|
+          {
+            id: line.id,
+            cod_linha: line.cod_linha,
+            des_linha: line.des_linha
+          }
         end
+      else
+        context.response = []
+      end
     end
+  end
 end

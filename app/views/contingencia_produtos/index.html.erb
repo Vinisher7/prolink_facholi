@@ -1,0 +1,53 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Produtos de Contingência</h2>
+    <p class="card-subtitle">
+      Gerencie e monitore todos os produtos de contingência
+    </p>
+    <div class="card-actions">
+      <%= link_to "Novo Produto", new_contingencia_produto_path, class: "btn btn-primary" %>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Lista de Produtos Cadastrados</h3>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th>Unidade de Medida</th>
+          <th>Data Criação</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @contingencia_produtos.each do |produto| %>
+          <tr>
+            <td><%= produto.cod_pro %></td>
+            <td><%= produto.des_pro %></td>
+            <td><%= produto.uni_med %></td>
+            <td><%= produto.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+            <td>
+              <%= link_to "Ver", contingencia_produto_path(produto), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "Editar", edit_contingencia_produto_path(produto), class: "btn btn-sm btn-primary" %>
+              <%= link_to "Excluir", contingencia_produto_path(produto), 
+                    method: :delete, 
+                    class: "btn btn-sm btn-danger",
+                    confirm: "Tem certeza que deseja excluir este produto?" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    
+    <% if @contingencia_produtos.empty? %>
+      <div class="empty-state">
+        <p>Nenhum produto de contingência encontrado.</p>
+        <%= link_to "Criar primeiro produto", new_contingencia_produto_path, class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

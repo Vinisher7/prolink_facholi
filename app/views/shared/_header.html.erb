@@ -1,6 +1,27 @@
 <header class="header">
-  <h1 class="page-title" id="pageTitle">Sistema de Contingência</h1>
-  <div class="breadcrumb" id="breadcrumb">
-    <span class="current">Contingência</span>
+  <div class="header-left">
+    <h1 class="page-title" id="pageTitle">Sistema de Contingência</h1>
+    <div class="breadcrumb" id="breadcrumb">
+      <span class="current">Contingência</span>
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <div class="user-menu">
+      <span class="user-info">
+        <i class="user-icon">👤</i>
+        <%= current_user.email if user_signed_in? %>
+      </span>
+      <div class="user-actions">
+        <%= form_with url: destroy_user_session_path, method: :delete, local: true, class: "logout-form" do |form| %>
+          <%= form.submit "Sair", 
+              class: "logout-btn",
+              data: { 
+                confirm: "Tem certeza que deseja sair?"
+              },
+              title: "Fazer logout" %>
+        <% end %>
+      </div>
+    </div>
   </div>
 </header>

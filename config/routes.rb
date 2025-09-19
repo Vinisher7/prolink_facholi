@@ -17,6 +17,8 @@ Rails.application.routes.draw do
     collection do
       get :fetch_products_by_line
       get :fetch_lines
+      get :fetch_equipment_lines
+      get :fetch_materia_prima
     end
   end
 

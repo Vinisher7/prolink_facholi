@@ -90,6 +90,41 @@ class ContingenciaOrdensController < ApplicationController
     end
   end
 
+  # Endpoint para buscar equipamentos de uma linha (AJAX)
+  def fetch_equipment_lines
+    cod_linha = params[:cod_linha]
+    
+    if cod_linha.blank?
+      return render json: { error: 'Código da linha é obrigatório' }, status: :bad_request
+    end
+
+    result = EquipmentLines::EquipmentLinesListingService.call(
+      cod_linha: cod_linha,
+      page: params[:page]
+    )
+
+    if result.success?
+      render json: result.response, status: :ok
+    else
+      render json: { error: result.message }, status: :bad_request
+    end
+  end
+
+  # Endpoint para buscar matérias-primas (AJAX)
+  def fetch_materia_prima
+    result = ErpProducts::MateriaPrimaListingService.call(
+      page: params[:page],
+      cod_filter: params[:cod_filter],
+      source: params[:source] || 'contingencia'
+    )
+
+    if result.success?
+      render json: result.response, status: :ok
+    else
+      render json: { error: result.message }, status: :bad_request
+    end
+  end
+
   private
 
   def contingencia_ordem_params

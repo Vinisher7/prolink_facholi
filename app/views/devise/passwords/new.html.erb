@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recuperar Senha - Facholi Sistema de Contingência</title>
+    <%= csrf_meta_tags %>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary-color: #ff6b35;
+        --primary-dark: #e55a2b;
+        --sidebar-bg: #2c3e50;
+        --text-light: #ecf0f1;
+        --text-muted: #bdc3c7;
+        --border-color: #e9ecef;
+        --background-color: #f8f9fa;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+        padding: 2rem 1rem;
+      }
+
+      .password-container {
+        background: white;
+        padding: 3rem;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .password-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+      }
+
+      .logo-section {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+
+      .logo-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+      }
+
+      .logo-text {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--sidebar-bg);
+        margin-bottom: 0.5rem;
+      }
+
+      .logo-subtitle {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--sidebar-bg);
+        font-size: 0.95rem;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+      }
+
+      .password-button {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+      }
+
+      .password-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+      }
+
+      .password-button:active {
+        transform: translateY(0);
+      }
+
+      .links-section {
+        text-align: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .auth-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      .auth-link:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+      }
+
+      .alert {
+        padding: 0.875rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
+
+      .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .alert-notice {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      .help-text {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        text-align: center;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="password-container">
+      <div class="logo-section">
+        <div class="logo-icon">🔑</div>
+        <div class="logo-text">Facholi</div>
+        <div class="logo-subtitle">Recuperar Senha</div>
+      </div>
+
+      <div class="help-text">
+        Digite seu e-mail e enviaremos instruções para redefinir sua senha.
+      </div>
+
+      <% flash.each do |type, message| %>
+        <div class="alert alert-<%= type == 'notice' ? 'notice' : 'danger' %>">
+          <%= message %>
+        </div>
+      <% end %>
+
+      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div class="form-group">
+          <%= f.label :email, "E-mail", class: "form-label" %>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input", placeholder: "Digite seu e-mail" %>
+        </div>
+
+        <%= f.submit "Enviar Instruções", class: "password-button" %>
+      <% end %>
+
+      <div class="links-section">
+        <%= render "devise/shared/links" %>
+      </div>
+    </div>
+  </body>
+</html>

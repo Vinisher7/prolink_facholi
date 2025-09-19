@@ -1,0 +1,57 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Produto de Contingência: <%= @contingencia_produto.cod_pro %></h2>
+    <p class="card-subtitle">
+      Detalhes do produto de contingência
+    </p>
+    <div class="card-actions">
+      <%= link_to "Editar", edit_contingencia_produto_path(@contingencia_produto), class: "btn btn-primary" %>
+      <%= link_to "Voltar", contingencia_produtos_path, class: "btn btn-secondary" %>
+    </div>
+  </div>
+
+  <div class="details-container">
+    <div class="details-grid">
+      <div class="detail-item">
+        <label class="detail-label">Código do Produto:</label>
+        <span class="detail-value"><%= @contingencia_produto.cod_pro %></span>
+      </div>
+
+      <div class="detail-item">
+        <label class="detail-label">Descrição:</label>
+        <span class="detail-value"><%= @contingencia_produto.des_pro %></span>
+      </div>
+
+      <div class="detail-item">
+        <label class="detail-label">Unidade de Medida:</label>
+        <span class="detail-value"><%= @contingencia_produto.uni_med %></span>
+      </div>
+
+      <div class="detail-item">
+        <label class="detail-label">Data de Criação:</label>
+        <span class="detail-value"><%= @contingencia_produto.created_at.strftime("%d/%m/%Y às %H:%M") %></span>
+      </div>
+
+      <div class="detail-item">
+        <label class="detail-label">Última Atualização:</label>
+        <span class="detail-value"><%= @contingencia_produto.updated_at.strftime("%d/%m/%Y às %H:%M") %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="card-title">Ações Disponíveis</h3>
+    </div>
+    <div class="card-body">
+      <div class="action-buttons">
+        <%= link_to "Editar Produto", edit_contingencia_produto_path(@contingencia_produto), class: "btn btn-primary" %>
+        <%= link_to "Excluir Produto", contingencia_produto_path(@contingencia_produto), 
+              method: :delete, 
+              class: "btn btn-danger",
+              confirm: "Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita." %>
+        <%= link_to "Lista de Produtos", contingencia_produtos_path, class: "btn btn-secondary" %>
+      </div>
+    </div>
+  </div>
+</div>

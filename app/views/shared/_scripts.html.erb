@@ -11,7 +11,7 @@ let selectedData = {
   qtdPrd: null,
   qtdBat: null
 };
-let itemCounter = 1;
+let itemCounter = 0; // Iniciando em 0 para que o primeiro item seja 1
 
 // Configuração das páginas
 const pageConfig = {
@@ -99,28 +99,29 @@ function triggerPageLoadEvent(pageId) {
 // INICIALIZAÇÃO
 // ===============================================
 document.addEventListener('DOMContentLoaded', function() {
-  // Configura todos os event listeners
-  setupPageLoadEvents();
+  console.log('🚀 JavaScript carregado e DOM pronto!');
   
-  // Inicializa com dashboard ou último menu aberto
-  const lastActivePage = localStorage.getItem('lastActivePage');
-  if (lastActivePage) {
-    showPage(lastActivePage);
-  } else {
-    updateStep(1);
-  }
-  
-  // Remove a configuração inicial do form - será feito por evento
-  // setupProductForm(); // REMOVIDO - evita duplicação de event listeners
-  
-  // Remove o carregamento inicial das unidades - será feito por evento
-  // loadUnityMeasurements(); // REMOVIDO
+  // Aguarda um pouco para garantir que tudo foi carregado
+  setTimeout(() => {
+    // Configura todos os event listeners
+    setupPageLoadEvents();
+    
+    // Inicializa com dashboard ou último menu aberto
+    const lastActivePage = localStorage.getItem('lastActivePage');
+    if (lastActivePage) {
+      showPage(lastActivePage);
+    } else {
+      showPage('dashboard');
+    }
+  }, 100);
 });
 
 // ===============================================
 // NAVEGAÇÃO ENTRE PÁGINAS
 // ===============================================
 function showPage(pageId) {
+  console.log(`🎯 Tentando mostrar página: ${pageId}`);
+  
   // Remove active de todas as páginas
   document.querySelectorAll('.page-content').forEach(page => {
     page.classList.remove('active');
@@ -138,8 +139,11 @@ function showPage(pageId) {
 
   // Ativa página atual
   const targetPage = document.getElementById(`page-${pageId}`);
+  console.log(`📄 Página encontrada:`, targetPage);
+  
   if (targetPage) {
     targetPage.classList.add('active');
+    console.log(`✅ Página ${pageId} ativada com sucesso!`);
     
     // Atualiza header
     if (pageConfig[pageId]) {
@@ -163,6 +167,8 @@ function showPage(pageId) {
     setTimeout(() => {
       triggerPageLoadEvent(pageId);
     }, 0);
+  } else {
+    console.error(`❌ Página ${pageId} não encontrada!`);
   }
 }
 
@@ -211,7 +217,12 @@ async function loadLines() {
   try {
     showLoading('linhasGrid');
     
-    const response = await fetch('/fetch_lines_data');
+    const response = await fetch('<%= fetch_lines_contingencia_ordens_path %>', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
     const result = await response.json();
     
     const linhasGrid = document.getElementById('linhasGrid');
@@ -219,8 +230,8 @@ async function loadLines() {
     
     linhasGrid.innerHTML = '';
     
-    if (result.data && result.data.length > 0) {
-      result.data.forEach(linha => {
+    if (result && result.length > 0) {
+      result.forEach(linha => {
         const card = createLineCard(linha);
         linhasGrid.appendChild(card);
       });
@@ -271,7 +282,12 @@ async function loadProductsByLine(codLinha) {
   try {
     showLoading('produtosGrid');
     
-    const response = await fetch(`/fetch_products_by_line?cod_linha=${codLinha}`);
+    const response = await fetch(`<%= fetch_products_by_line_contingencia_ordens_path %>?cod_linha=${codLinha}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
     const result = await response.json();
     
     const produtosGrid = document.getElementById('produtosGrid');
@@ -279,8 +295,8 @@ async function loadProductsByLine(codLinha) {
     
     produtosGrid.innerHTML = '';
     
-    if (result.data && result.data.length > 0) {
-      result.data.forEach(produto => {
+    if (result.products && result.products.length > 0) {
+      result.products.forEach(produto => {
         const card = createProductCard(produto);
         produtosGrid.appendChild(card);
       });
@@ -306,7 +322,7 @@ function createProductCard(produto) {
     <div class="title">${produto.des_pro}</div>
     <div class="description">
       <strong>${produto.cod_pro}</strong><br>
-      ${produto.uni_med} | ${produto.cod_mod}
+      ${produto.uni_med} | ${produto.cod_mod || 'N/A'}
     </div>
   `;
   return card;
@@ -342,8 +358,8 @@ function selectProduct(element, produto) {
   if (btnNext) btnNext.disabled = false;
 }
 
-// PASSO 3: CRIAR ORDEM DE PRODUÇÃO
-async function createOrder() {
+// PASSO 3: VALIDAR E PREPARAR DADOS DA ORDEM
+function validateOrderData() {
   try {
     const numOrp = document.getElementById('numOrp')?.value;
     const qtdPrd = document.getElementById('qtdPrd')?.value;
@@ -354,50 +370,103 @@ async function createOrder() {
       return false;
     }
     
+    // Armazena os dados da ordem sem criar ainda
+    selectedData.numOrp = numOrp;
+    selectedData.qtdPrd = parseFloat(qtdPrd);
+    selectedData.qtdBat = parseFloat(qtdBat);
+    
+    showAlert('Dados da ordem validados! Agora adicione os itens.', 'success');
+    return true;
+  } catch (error) {
+    console.error('Erro ao validar dados da ordem:', error);
+    showAlert('Erro ao validar dados da ordem', 'danger');
+    return false;
+  }
+}
+
+// PASSO 4: CRIAR ORDEM COM ITENS
+async function createOrderWithItems() {
+  try {
+    const items = [];
+    // 1. Seleciona a estrutura correta da interface
+    const equipmentColumns = document.querySelectorAll('.equipment-column');
+
+    let sequenceCounter = 1; // Contador para a sequência geral
+
+    // 2. Percorre cada coluna de equipamento (balança)
+    equipmentColumns.forEach(column => {
+      const codBalanca = column.getAttribute('data-equipment');
+      const steps = column.querySelectorAll('.step-item');
+
+      // 3. Percorre cada passo dentro da coluna
+      steps.forEach(step => {
+        const codProInput = step.querySelector('.item-cod-cmp');
+        const quantidadeInput = step.querySelector('.item-qtd-uti');
+
+        // 4. Adiciona o item ao array apenas se ambos os campos estiverem preenchidos
+        if (codProInput && quantidadeInput && codProInput.value.trim() !== '' && quantidadeInput.value.trim() !== '') {
+          items.push({
+            cod_pro: codProInput.value,
+            seq_mod: sequenceCounter++, // Define a sequência correta
+            quantidade: parseFloat(quantidadeInput.value),
+            cod_balanca: codBalanca
+          });
+        }
+      });
+    });
+
+    if (items.length === 0) {
+      showAlert('Adicione pelo menos um componente à ordem', 'warning');
+      return false; // Retorna false em caso de falha
+    }
+
     const orderData = {
-      num_orp: numOrp,
-      cod_linha: selectedData.linha.cod_linha,
-      cod_pro: selectedData.produto.cod_pro,
-      qtd_prd: parseFloat(qtdPrd),
-      qtd_bat: parseFloat(qtdBat)
+      contingencia_production_order: {
+        num_orp: selectedData.numOrp,
+        cod_linha: selectedData.linha.cod_linha,
+        cod_pro: selectedData.produto.cod_pro,
+        qtd_prd: selectedData.qtdPrd,
+        qtd_bat: selectedData.qtdBat
+      },
+      items: items // Agora contém os dados corretos
     };
-    
-    showLoading('btnNext');
-    
-    const response = await fetch('/create_contingencia_order', {
+
+    showLoading('btnNext'); // Pode ser um ID mais específico para o botão de finalizar
+
+    const response = await fetch('<%= contingencia_ordens_path %>', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
       },
       body: JSON.stringify(orderData)
     });
-    
+
     const result = await response.json();
-    
+
     if (response.ok) {
-      selectedData.numOrp = numOrp;
-      selectedData.qtdPrd = qtdPrd;
-      selectedData.qtdBat = qtdBat;
-      
-      showAlert('Ordem criada com sucesso!', 'success');
-      const btnNext = document.getElementById('btnNext');
-      if (btnNext) btnNext.disabled = false;
-      return true;
+      showAlert('Ordem de contingência criada com sucesso!', 'success');
+      // showPage('ordens-listagem'); // Opcional: redirecionar para a listagem
+      resetOrderForm();
+      return true; // Retorna true em caso de sucesso
     } else {
       showAlert(result.error || 'Erro ao criar ordem', 'danger');
       return false;
     }
+
   } catch (error) {
     console.error('Erro ao criar ordem:', error);
-    showAlert('Erro ao criar ordem de produção', 'danger');
+    showAlert('Erro fatal ao criar ordem de produção. Verifique o console.', 'danger');
     return false;
   } finally {
-    hideLoading('btnNext');
+    hideLoading('btnNext'); // Garante que o loading seja removido
+    closeConfirmOrderModal();
   }
 }
 
-// PASSO 4: ADICIONAR ITENS À ORDEM
+// Atualizar função addItem para incluir balanças
 function addItem() {
   const container = document.getElementById('itensContainer');
   if (!container) return;
@@ -410,11 +479,16 @@ function addItem() {
     <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: end;">
       <div class="form-group" style="margin-bottom: 0;">
         <label class="form-label">Código Componente</label>
-        <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP00${itemCounter + 1}">
+        <div class="input-with-button">
+          <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP001" readonly>
+          <button type="button" class="btn btn-outline btn-sm" onclick="openMateriaPrimaModal(${itemCounter})">
+            🔍 Buscar
+          </button>
+        </div>
       </div>
       <div class="form-group" style="margin-bottom: 0;">
         <label class="form-label">Sequência</label>
-        <input type="number" class="form-control item-seq-mod" placeholder="${itemCounter + 1}" min="1" value="${itemCounter + 1}">
+        <input type="number" class="form-control item-seq-mod" value="" readonly style="display: none;">
       </div>
       <div class="form-group" style="margin-bottom: 0;">
         <label class="form-label">Quantidade</label>
@@ -422,7 +496,9 @@ function addItem() {
       </div>
       <div class="form-group" style="margin-bottom: 0;">
         <label class="form-label">Código Balança</label>
-        <input type="text" class="form-control item-cod-balanca" placeholder="Ex: BAL00${itemCounter + 1}">
+        <select class="form-control item-cod-balanca" onchange="onBalancaSelected(this)">
+          <option value="">Selecione uma balança...</option>
+        </select>
       </div>
       <div class="form-group" style="margin-bottom: 0;">
         <label class="form-label">Ação</label>
@@ -432,14 +508,64 @@ function addItem() {
   `;
   
   container.appendChild(itemDiv);
+  
+  // Carrega balanças se linha já foi selecionada
+  if (selectedData.linha) {
+    loadEquipmentLines(selectedData.linha.cod_linha);
+  }
+  
   itemCounter++;
+  renumberItems(); // Renumera todos os itens após adição
+}
+
+// Função chamada quando uma balança é selecionada
+function onBalancaSelected(selectElement) {
+  const itemForm = selectElement.closest('.item-form');
+  const sequenceInput = itemForm.querySelector('.item-seq-mod');
+  
+  if (selectElement.value && sequenceInput) {
+    // Mostra o campo sequência e define o valor
+    sequenceInput.style.display = 'block';
+    
+    // Conta quantas balanças já foram selecionadas para definir a sequência
+    const selectedBalancas = document.querySelectorAll('.item-cod-balanca option:checked:not([value=""])');
+    sequenceInput.value = selectedBalancas.length;
+  } else if (sequenceInput) {
+    // Oculta o campo sequência se nenhuma balança foi selecionada
+    sequenceInput.style.display = 'none';
+    sequenceInput.value = '';
+  }
+  
+  // Renumera todos os itens
+  renumberItems();
 }
 
 function removeItem(itemId) {
   const item = document.querySelector(`[data-item="${itemId}"]`);
   if (item) {
     item.remove();
+    renumberItems(); // Renumera todos os itens após remoção
   }
+}
+
+// Função para renumerar todos os itens
+function renumberItems() {
+  const items = document.querySelectorAll('.item-form');
+  let sequence = 1;
+  
+  items.forEach((item) => {
+    const balancaSelect = item.querySelector('.item-cod-balanca');
+    const sequenceInput = item.querySelector('.item-seq-mod');
+    
+    if (balancaSelect && balancaSelect.value && sequenceInput) {
+      sequenceInput.value = sequence;
+      sequenceInput.style.display = 'block';
+      sequence++;
+    } else if (sequenceInput) {
+      sequenceInput.style.display = 'none';
+      sequenceInput.value = '';
+    }
+  });
 }
 
 async function addItemsToOrder() {
@@ -448,19 +574,17 @@ async function addItemsToOrder() {
     const itemForms = document.querySelectorAll('.item-form');
     
     itemForms.forEach(form => {
-      const codCmp = form.querySelector('.item-cod-cmp')?.value;
+      const codPro = form.querySelector('.item-cod-cmp')?.value;
       const seqMod = form.querySelector('.item-seq-mod')?.value;
-      const qtdUti = form.querySelector('.item-qtd-uti')?.value;
+      const quantidade = form.querySelector('.item-qtd-uti')?.value;
       const codBalanca = form.querySelector('.item-cod-balanca')?.value;
       
-      if (codCmp && seqMod && qtdUti && codBalanca) {
+      if (codPro && seqMod && quantidade && codBalanca) {
         items.push({
-          num_orp: selectedData.numOrp,
-          cod_cmp: codCmp,
+          cod_pro: codPro,
           seq_mod: parseInt(seqMod),
-          qtd_uti: parseFloat(qtdUti),
-          cod_balanca: codBalanca,
-          origem: 'CONTINGENCIA'
+          quantidade: parseFloat(quantidade),
+          cod_balanca: codBalanca
         });
       }
     });
@@ -469,13 +593,20 @@ async function addItemsToOrder() {
       showAlert('Adicione pelo menos um item à ordem', 'warning');
       return false;
     }
+
+    if (!selectedData.ordemId) {
+      showAlert('ID da ordem não encontrado', 'danger');
+      return false;
+    }
     
     showLoading('btnNext');
     
-    const response = await fetch('/add_items_to_order', {
+    const response = await fetch(`<%= add_items_contingencia_orden_path('ORDEM_ID') %>`.replace('ORDEM_ID', selectedData.ordemId), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
       },
       body: JSON.stringify({ items: items })
@@ -502,53 +633,6 @@ async function addItemsToOrder() {
   }
 }
 
-// CONTROLE DE STEPS DAS ORDENS
-function updateStep(step) {
-  currentStep = step;
-  
-  // Atualiza visual dos steps
-  document.querySelectorAll('.step').forEach(s => {
-    const stepNum = parseInt(s.dataset.step);
-    s.classList.remove('active', 'completed');
-    
-    if (stepNum < step) s.classList.add('completed');
-    else if (stepNum === step) s.classList.add('active');
-  });
-  
-  // Mostra seção correspondente
-  document.querySelectorAll('.form-section').forEach(section => {
-    section.classList.remove('active');
-  });
-  const activeSection = document.querySelector(`[data-section="${step}"]`);
-  if (activeSection) activeSection.classList.add('active');
-  
-  // Controla botões
-  const btnPrevious = document.getElementById('btnPrevious');
-  const btnNext = document.getElementById('btnNext');
-  
-  if (btnPrevious) btnPrevious.disabled = step === 1;
-  
-  // Verifica se pode prosseguir
-  let canProceed = false;
-  if (step === 1) canProceed = selectedData.linha !== null;
-  else if (step === 2) canProceed = selectedData.produto !== null;
-  else if (step === 3) canProceed = false; // Será habilitado após validação dos campos
-  else if (step === 4) canProceed = false; // Será habilitado após adicionar itens
-  
-  if (btnNext) {
-    btnNext.disabled = !canProceed;
-    
-    // Atualiza texto do botão
-    if (step === 3) {
-      btnNext.textContent = 'Criar Ordem →';
-    } else if (step === 4) {
-      btnNext.textContent = 'Finalizar Ordem';
-    } else {
-      btnNext.textContent = 'Próximo →';
-    }
-  }
-}
-
 async function nextStep() {
   if (currentStep === 1 && selectedData.linha) {
     // Carrega produtos da linha selecionada
@@ -557,15 +641,84 @@ async function nextStep() {
   } else if (currentStep === 2 && selectedData.produto) {
     updateStep(3);
   } else if (currentStep === 3) {
-    // Cria a ordem
-    const success = await createOrder();
+    // Valida dados da ordem sem criar
+    const success = validateOrderData();
     if (success) {
       updateStep(4);
     }
   } else if (currentStep === 4) {
-    // Adiciona itens e finaliza
-    await addItemsToOrder();
+    console.log('🎯 Passo 4 - Tentando abrir modal de confirmação');
+    
+    // Verifica se pode finalizar antes de abrir modal
+    const canFinalize = validateOrderCompletion();
+    if (canFinalize) {
+      // Abre modal de confirmação
+      openConfirmOrderModal();
+    } else {
+      showAlert('Preencha pelo menos 1 passo de cada balança antes de finalizar', 'warning');
+    }
   }
+}
+
+// Função para abrir modal de confirmação - SIMPLIFICADA
+function openConfirmOrderModal() {
+  console.log('🔍 Abrindo modal simplificado...');
+  
+  try {
+    // Preenche dados básicos da ordem
+    document.getElementById('confirm-num-orp').textContent = selectedData.numOrp || '-';
+    document.getElementById('confirm-linha').textContent = selectedData.linha ? `${selectedData.linha.cod_linha} - ${selectedData.linha.des_linha}` : '-';
+    document.getElementById('confirm-produto').textContent = selectedData.produto ? `${selectedData.produto.cod_pro} - ${selectedData.produto.des_pro}` : '-';
+    document.getElementById('confirm-qtd-prd').textContent = selectedData.qtdPrd || '-';
+    
+    // Preenche componentes de forma simples
+    const componentsList = document.getElementById('confirm-components-list');
+    componentsList.innerHTML = '';
+    
+    const equipmentColumns = document.querySelectorAll('.equipment-column');
+    equipmentColumns.forEach(column => {
+      const equipmentCode = column.getAttribute('data-equipment');
+      const steps = column.querySelectorAll('.step-item');
+      
+      steps.forEach(step => {
+        const stepNumber = step.getAttribute('data-step');
+        const codInput = step.querySelector('.item-cod-cmp');
+        const qtyInput = step.querySelector('.item-qtd-uti');
+        
+        if (codInput && qtyInput && codInput.value.trim() && qtyInput.value.trim()) {
+          const itemDiv = document.createElement('div');
+          itemDiv.style.cssText = 'display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #eee; align-items: center;';
+          itemDiv.innerHTML = `
+            <div><strong>${equipmentCode} - Passo ${stepNumber}:</strong> ${codInput.value}</div>
+            <div style="color: #666;">Qtd: ${qtyInput.value}</div>
+          `;
+          componentsList.appendChild(itemDiv);
+        }
+      });
+    });
+    
+    // Mostra modal de forma simples
+    const modal = document.getElementById('confirmOrderModal');
+    modal.style.display = 'block';
+    console.log('✅ Modal simplificado aberto');
+    
+  } catch (error) {
+    console.error('❌ Erro:', error);
+    alert('Erro ao abrir confirmação');
+  }
+}
+
+// Função para fechar modal - SIMPLIFICADA
+function closeConfirmOrderModal() {
+  const modal = document.getElementById('confirmOrderModal');
+  modal.style.display = 'none';
+}
+
+// Função para finalizar ordem após confirmação
+async function finalizeOrder() {
+  // A função createOrderWithItems já lida com tudo:
+  // coleta de dados, envio, alertas, e fechamento do modal.
+  await createOrderWithItems();
 }
 
 function previousStep() {
@@ -636,7 +789,12 @@ function resetOrderForm() {
 
 async function loadOrdersListagem() {
   try {
-    const response = await fetch('/list_contingencia_orders');
+    const response = await fetch('<%= contingencia_ordens_path %>', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
     const result = await response.json();
     
     const tbody = document.getElementById('ordensListagemBody');
@@ -644,8 +802,8 @@ async function loadOrdersListagem() {
     
     tbody.innerHTML = '';
     
-    if (result.data && result.data.length > 0) {
-      result.data.forEach(ordem => {
+    if (result && result.length > 0) {
+      result.forEach(ordem => {
         const row = createOrderRowListagem(ordem);
         tbody.appendChild(row);
       });
@@ -703,8 +861,13 @@ async function loadUnityMeasurements() {
   console.log('🔄 Iniciando carregamento de unidades de medida...');
   
   try {
-    console.log('📡 Fazendo requisição para /list_unity_measurements');
-    const response = await fetch('/list_unity_measurements');
+    console.log('📡 Fazendo requisição para fetch_unity_measurements');
+    const response = await fetch('<%= fetch_unity_measurements_contingencia_produtos_path %>', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
     console.log('📡 Response status:', response.status);
     
     const result = await response.json();
@@ -724,14 +887,14 @@ async function loadUnityMeasurements() {
     select.innerHTML = '<option value="">Selecione uma unidade...</option>';
     console.log('🧹 Select limpo, opção padrão adicionada');
     
-    if (result.data && result.data.length > 0) {
-      console.log(`📋 Processando ${result.data.length} unidades de medida`);
-      result.data.forEach((uom, index) => {
+    if (result && result.length > 0) {
+      console.log(`📋 Processando ${result.length} unidades de medida`);
+      result.forEach((uom, index) => {
         const option = document.createElement('option');
         option.value = uom.uni_med;
-        option.textContent = `${uom.uni_med} - ${uom.des_med}`;
+        option.textContent = `${uom.uni_med} - ${uom.des_uni_med}`;
         select.appendChild(option);
-        console.log(`✅ Opção ${index + 1} adicionada: ${uom.uni_med} - ${uom.des_med}`);
+        console.log(`✅ Opção ${index + 1} adicionada: ${uom.uni_med} - ${uom.des_uni_med}`);
       });
       console.log('🎉 Todas as unidades de medida foram carregadas com sucesso!');
       console.log('📊 Total de opções no select:', select.options.length);
@@ -786,17 +949,21 @@ async function saveProduto() {
     }
     
     const productData = {
-      cod_pro: codPro,
-      des_pro: desPro,
-      uni_med: uniMed
+      contingencia_product: {
+        cod_pro: codPro,
+        des_pro: desPro,
+        uni_med: uniMed
+      }
     };
     
     showLoading('btnSalvar');
     
-    const response = await fetch('/create_contingencia_product', {
+    const response = await fetch('<%= contingencia_produtos_path %>', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
       },
       body: JSON.stringify(productData)
@@ -811,10 +978,6 @@ async function saveProduto() {
     if (response.ok) {
       showAlertProdutos('Produto de contingência criado com sucesso!', 'success');
       clearForm();
-      
-      // Remove a exibição da listagem de produtos após cadastro
-      // document.getElementById('produtosCriadosCard').style.display = 'block';
-      // loadProdutosCriados();
     } else {
       // Trata diferentes tipos de erro com mensagens específicas
       let errorMessage = 'Erro ao criar produto';
@@ -880,7 +1043,12 @@ async function loadProdutosListagem() {
   try {
     document.getElementById('loadingProdutos').style.display = 'block';
     
-    const response = await fetch('/list_contingencia_products');
+    const response = await fetch('<%= contingencia_produtos_path %>', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
     const result = await response.json();
     
     const tbody = document.getElementById('produtosListagemBody');
@@ -888,8 +1056,8 @@ async function loadProdutosListagem() {
     
     tbody.innerHTML = '';
     
-    if (result.data && result.data.length > 0) {
-      result.data.forEach(produto => {
+    if (result && result.length > 0) {
+      result.forEach(produto => {
         const row = createProductRowListagem(produto);
         tbody.appendChild(row);
       });
@@ -950,8 +1118,348 @@ function clearForm() {
 }
 
 // ===============================================
-// MÓDULO: RELATÓRIOS
+// MÓDULO: MODAL MATÉRIA-PRIMA
 // ===============================================
+
+let currentItemIndex = null;
+let currentEquipment = null;
+let currentModalStep = null; // Renomeando para evitar conflito
+
+async function openMateriaPrimaModal(codEqp, stepNumber) {
+  currentEquipment = codEqp;
+  currentModalStep = stepNumber;
+  const modal = document.getElementById('materiaPrimaModal');
+  
+  if (modal) {
+    modal.classList.add('show');
+    await loadMateriaPrima();
+  }
+}
+
+function closeMateriaPrimaModal() {
+  const modal = document.getElementById('materiaPrimaModal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+  currentEquipment = null;
+  currentModalStep = null;
+}
+
+async function loadMateriaPrima(page = 1, filter = '') {
+  try {
+    const source = document.getElementById('materiaPrimaSource')?.value || 'contingencia';
+    const response = await fetch(`<%= fetch_materia_prima_contingencia_ordens_path %>?page=${page}&cod_filter=${filter}&source=${source}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+    
+    const result = await response.json();
+    
+    if (result.materia_prima) {
+      materiaPrimaData = result.materia_prima;
+      renderMateriaPrimaList();
+      renderMateriaPrimaPagination(result.pagination);
+    }
+  } catch (error) {
+    console.error('Erro ao carregar matéria-prima:', error);
+    showAlert('Erro ao carregar matéria-prima', 'danger');
+  }
+}
+
+function renderMateriaPrimaList() {
+  const list = document.getElementById('materiaPrimaList');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  
+  if (materiaPrimaData.length === 0) {
+    list.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6c757d;">Nenhuma matéria-prima encontrada</p>';
+    return;
+  }
+  
+  materiaPrimaData.forEach(item => {
+    const itemElement = document.createElement('div');
+    itemElement.className = 'materia-prima-item';
+    itemElement.onclick = () => selectMateriaPrima(item);
+    
+    itemElement.innerHTML = `
+      <div class="materia-prima-info">
+        <div class="materia-prima-code">${item.cod_pro}</div>
+        <div class="materia-prima-desc">${item.des_pro}</div>
+      </div>
+      <div class="materia-prima-unit">${item.uni_med}</div>
+    `;
+    
+    list.appendChild(itemElement);
+  });
+}
+
+function renderMateriaPrimaPagination(pagination) {
+  const container = document.getElementById('materiaPrimaPagination');
+  if (!container || !pagination) return;
+  
+  container.innerHTML = '';
+  
+  if (pagination.pages > 1) {
+    const paginationHtml = `
+      <div class="pagination">
+        ${pagination.prev ? `<button onclick="loadMateriaPrima(${pagination.prev})" class="btn btn-sm btn-outline">← Anterior</button>` : ''}
+        <span>Página ${pagination.page} de ${pagination.pages}</span>
+        ${pagination.next ? `<button onclick="loadMateriaPrima(${pagination.next})" class="btn btn-sm btn-outline">Próximo →</button>` : ''}
+      </div>
+    `;
+    container.innerHTML = paginationHtml;
+  }
+}
+
+function selectMateriaPrima(item) {
+  if (currentEquipment && currentModalStep) {
+    const stepItem = document.querySelector(`[data-equipment="${currentEquipment}"][data-step="${currentModalStep}"]`);
+    if (stepItem) {
+      const input = stepItem.querySelector('.item-cod-cmp');
+      if (input) {
+        input.value = item.cod_pro;
+        input.title = item.des_pro; // Tooltip com descrição
+        
+        // Dispara validação após selecionar produto
+        validateOrderCompletion();
+      }
+    }
+  }
+  
+  closeMateriaPrimaModal();
+  showAlert(`Matéria-prima ${item.cod_pro} selecionada!`, 'success');
+}
+
+// Função para validar se a ordem pode ser finalizada
+function validateOrderCompletion() {
+  const equipmentColumns = document.querySelectorAll('.equipment-column');
+  let canFinalize = true;
+  
+  // Verifica se cada equipamento tem pelo menos um passo preenchido
+  equipmentColumns.forEach(column => {
+    const equipmentCode = column.getAttribute('data-equipment');
+    const steps = column.querySelectorAll('.step-item');
+    let hasFilledStep = false;
+    
+    steps.forEach(step => {
+      const codInput = step.querySelector('.item-cod-cmp');
+      const qtyInput = step.querySelector('.item-qtd-uti');
+      
+      if (codInput && qtyInput && codInput.value.trim() && qtyInput.value.trim()) {
+        hasFilledStep = true;
+      }
+    });
+    
+    if (!hasFilledStep) {
+      canFinalize = false;
+    }
+  });
+  
+  // Habilita/desabilita botão Finalizar Ordem
+  const btnNext = document.getElementById('btnNext');
+  if (btnNext && currentStep === 4) {
+    btnNext.disabled = !canFinalize;
+    
+    // Atualiza texto do botão baseado no estado
+    if (canFinalize) {
+      btnNext.textContent = '✅ Finalizar Ordem';
+      btnNext.classList.remove('btn-primary');
+      btnNext.classList.add('btn-success');
+    } else {
+      btnNext.textContent = 'Preencha pelo menos 1 passo de cada balança';
+      btnNext.classList.remove('btn-success');
+      btnNext.classList.add('btn-primary');
+    }
+  }
+  
+  return canFinalize;
+}
+
+function filterMateriaPrima() {
+  const filter = document.getElementById('materiaPrimaFilter').value;
+  loadMateriaPrima(1, filter);
+}
+
+// ===============================================
+// MÓDULO: EQUIPMENT LINES (BALANÇAS)
+// ===============================================
+
+async function loadEquipmentLines(codLinha) {
+  try {
+    const response = await fetch(`<%= fetch_equipment_lines_contingencia_ordens_path %>?cod_linha=${codLinha}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+    
+    const result = await response.json();
+    
+    if (result.equipment_lines) {
+      renderEquipmentColumns(result.equipment_lines);
+    }
+  } catch (error) {
+    console.error('Erro ao carregar equipamentos da linha:', error);
+  }
+}
+
+function renderEquipmentColumns(equipmentLines) {
+  const container = document.getElementById('itensContainer');
+  if (!container) return;
+  
+  // Limpa container
+  container.innerHTML = '';
+  
+  // Cria layout em grid baseado no número de equipamentos
+  const gridColumns = equipmentLines.length;
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = `repeat(${gridColumns}, 1fr)`;
+  container.style.gap = '2rem';
+  container.style.marginBottom = '2rem';
+  
+  // Renderiza uma coluna para cada equipamento
+  equipmentLines.forEach((equipment, index) => {
+    const equipmentColumn = createEquipmentColumn(equipment, index);
+    container.appendChild(equipmentColumn);
+  });
+  
+  // Chama validação inicial após renderizar
+  setTimeout(() => {
+    validateOrderCompletion();
+  }, 100);
+}
+
+function createEquipmentColumn(equipment, equipmentIndex) {
+  const column = document.createElement('div');
+  column.className = 'equipment-column';
+  column.setAttribute('data-equipment', equipment.cod_eqp);
+  
+  // Header da coluna
+  const header = document.createElement('div');
+  header.className = 'equipment-header';
+  header.innerHTML = `
+    <h4>${equipment.cod_eqp}</h4>
+    <p>${equipment.des_eqp || 'Equipamento'}</p>
+    <small>Máx: ${equipment.pas_max} passos</small>
+  `;
+  column.appendChild(header);
+  
+  // Container para os passos
+  const stepsContainer = document.createElement('div');
+  stepsContainer.className = 'equipment-steps';
+  stepsContainer.setAttribute('data-equipment-steps', equipment.cod_eqp);
+  
+  // Cria os passos baseado no pas_max
+  for (let step = 1; step <= equipment.pas_max; step++) {
+    const stepItem = createStepItem(equipment.cod_eqp, step, equipmentIndex);
+    stepsContainer.appendChild(stepItem);
+  }
+  
+  column.appendChild(stepsContainer);
+  return column;
+}
+
+function createStepItem(codEqp, stepNumber, equipmentIndex) {
+  const stepDiv = document.createElement('div');
+  stepDiv.className = 'step-item';
+  stepDiv.setAttribute('data-equipment', codEqp);
+  stepDiv.setAttribute('data-step', stepNumber);
+  
+  stepDiv.innerHTML = `
+    <div class="step-header">
+      <span class="step-number">Passo ${stepNumber}</span>
+    </div>
+    <div class="step-content">
+      <div class="form-group">
+        <label class="form-label">Código Componente</label>
+        <div class="input-with-button">
+          <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP001" readonly onchange="validateOrderCompletion()">
+          <button type="button" class="btn btn-outline btn-sm" onclick="openMateriaPrimaModal('${codEqp}', ${stepNumber})">
+            🔍 Buscar
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quantidade</label>
+        <input type="number" class="form-control item-qtd-uti" placeholder="10.5" step="0.1" min="0.1" onchange="validateOrderCompletion()">
+      </div>
+    </div>
+  `;
+  
+  return stepDiv;
+}
+
+function updateBalancaSelects(equipmentLines) {
+  const selects = document.querySelectorAll('.item-cod-balanca');
+  
+  selects.forEach(select => {
+    // Limpa opções existentes exceto a primeira
+    select.innerHTML = '<option value="">Selecione uma balança...</option>';
+    
+    // Adiciona novas opções
+    equipmentLines.forEach(equipment => {
+      const option = document.createElement('option');
+      option.value = equipment.cod_eqp;
+      option.textContent = equipment.cod_eqp;
+      select.appendChild(option);
+    });
+  });
+}
+
+// Atualizar função updateStep para carregar balanças no passo 4
+function updateStep(step) {
+  currentStep = step;
+  
+  // Atualiza visual dos steps
+  document.querySelectorAll('.step').forEach(s => {
+    const stepNum = parseInt(s.dataset.step);
+    s.classList.remove('active', 'completed');
+    
+    if (stepNum < step) s.classList.add('completed');
+    else if (stepNum === step) s.classList.add('active');
+  });
+  
+  // Mostra seção correspondente
+  document.querySelectorAll('.form-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  const activeSection = document.querySelector(`[data-section="${step}"]`);
+  if (activeSection) activeSection.classList.add('active');
+  
+  // Carrega balanças quando chega no passo 4
+  if (step === 4 && selectedData.linha) {
+    loadEquipmentLines(selectedData.linha.cod_linha);
+  }
+  
+  // Controla botões
+  const btnPrevious = document.getElementById('btnPrevious');
+  const btnNext = document.getElementById('btnNext');
+  
+  if (btnPrevious) btnPrevious.disabled = step === 1;
+  
+  // Verifica se pode prosseguir
+  let canProceed = false;
+  if (step === 1) canProceed = selectedData.linha !== null;
+  else if (step === 2) canProceed = selectedData.produto !== null;
+  else if (step === 3) canProceed = false; // Será habilitado após validação dos campos
+  else if (step === 4) canProceed = false; // Será habilitado após adicionar itens
+  
+  if (btnNext) {
+    btnNext.disabled = !canProceed;
+    
+    // Atualiza texto do botão
+    if (step === 3) {
+      btnNext.textContent = 'Validar Dados →';
+    } else if (step === 4) {
+      btnNext.textContent = 'Finalizar Ordem';
+    } else {
+      btnNext.textContent = 'Próximo →';
+    }
+  }
+}
 function openReportingServices() {
   // Configurar URL do Reporting Services
   const reportingUrl = 'http://seu-servidor-reports/Reports'; // Substitua pela URL real

@@ -99,40 +99,13 @@
         <div class="info-panel">
           <div class="title">⚖️ Itens da Ordem</div>
           <div class="content">
-            Adicione os componentes necessários para a produção com origem "CONTINGENCIA".
+            Adicione os componentes necessários para a produção. Use as balanças da linha selecionada.
           </div>
         </div>
         
         <div id="itensContainer">
-          <div class="item-form" data-item="0">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: end;">
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Código Componente</label>
-                <input type="text" class="form-control item-cod-cmp" placeholder="Ex: COMP001">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Sequência</label>
-                <input type="number" class="form-control item-seq-mod" placeholder="1" min="1">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Quantidade</label>
-                <input type="number" class="form-control item-qtd-uti" placeholder="10.5" step="0.1" min="0.1">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Código Balança</label>
-                <input type="text" class="form-control item-cod-balanca" placeholder="Ex: BAL001">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Ação</label>
-                <button type="button" class="btn btn-secondary" onclick="removeItem(0)" style="padding: 0.75rem;">❌</button>
-              </div>
-            </div>
-          </div>
+          <!-- Equipamentos serão renderizados dinamicamente baseados na linha selecionada -->
         </div>
-        
-        <button type="button" class="btn btn-secondary" onclick="addItem()" style="margin-top: 1rem;">
-          ➕ Adicionar Item
-        </button>
       </div>
     </div>
   </div>
@@ -145,6 +118,80 @@
       Próximo →
     </button>
   </div>
+</div>
+
+<!-- Modal para Seleção de Matéria-Prima -->
+<div id="materiaPrimaModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Selecionar Matéria-Prima</h3>
+      <button type="button" class="modal-close" onclick="closeMateriaPrimaModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Fonte dos Produtos</label>
+        <select id="materiaPrimaSource" class="form-control" onchange="loadMateriaPrima(1, document.getElementById('materiaPrimaFilter').value)">
+          <option value="contingencia">Produtos de Contingência</option>
+          <option value="erp">Produtos ERP (Matéria-Prima)</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Filtrar por Código</label>
+        <input type="text" id="materiaPrimaFilter" class="form-control" placeholder="Digite o código para filtrar..." onkeyup="filterMateriaPrima()">
+      </div>
+      
+      <div class="materia-prima-list" id="materiaPrimaList">
+        <!-- Carregado dinamicamente via JavaScript -->
+      </div>
+      
+      <div class="pagination-container" id="materiaPrimaPagination">
+        <!-- Paginação carregada dinamicamente -->
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closeMateriaPrimaModal()">Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal de Confirmação da Ordem - SIMPLIFICADO -->
+<div class="modal" id="confirmOrderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999;">
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
+      <h3 style="margin: 0; color: #333;">📋 Confirmar Ordem</h3>
+      <button type="button" onclick="closeConfirmOrderModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+    </div>
+    
+    <div style="margin-bottom: 1.5rem;">
+      <h4 style="margin: 0 0 1rem 0; color: #555;">📊 Dados da Ordem</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div><strong>ORP:</strong> <span id="confirm-num-orp">-</span></div>
+        <div><strong>Linha:</strong> <span id="confirm-linha">-</span></div>
+        <div><strong>Produto:</strong> <span id="confirm-produto">-</span></div>
+        <div><strong>Qtd. Produção:</strong> <span id="confirm-qtd-prd">-</span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <h4 style="margin: 0 0 1rem 0; color: #555;">🔧 Componentes</h4>
+      <div id="confirm-components-list" style="max-height: 300px; overflow-y: auto;">
+        <!-- Componentes serão inseridos aqui -->
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <button type="button" onclick="closeConfirmOrderModal()" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Cancelar
+      </button>
+      <button type="button" onclick="finalizeOrder()" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        ✅ Confirmar
+      </button>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- Alertas -->

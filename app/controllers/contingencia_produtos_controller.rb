@@ -97,8 +97,13 @@ class ContingenciaProdutosController < ApplicationController
 
   # Endpoint para buscar unidades de medida (AJAX)
   def fetch_unity_measurements
-    @unity_measurements = ErpUnityMeasurement.order(:uni_med)
-    render json: @unity_measurements, status: :ok
+    result = ContingenciaProdutoService::FetchUnityMeasurements.call
+    
+    if result.success?
+      render json: result.response, status: :ok
+    else
+      render json: { error: result.message }, status: :bad_request
+    end
   end
 
   private
