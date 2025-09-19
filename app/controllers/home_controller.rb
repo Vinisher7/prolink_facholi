@@ -2,7 +2,6 @@ class HomeController < ApplicationController
   before_action :set_auth_headers
 
   def index
-    # Página inicial simples - dashboard
   end
 
   # ===============================================
@@ -11,8 +10,8 @@ class HomeController < ApplicationController
 
   # PASSO 1: Listar Linhas Disponíveis (GET /api/v1/lines)
   def fetch_lines_data
-    response = make_api_request('/api/v1/lines', 'GET')
-    render json: response
+    response = Line.all
+    render json: { data: response }, status: :ok
   end
 
   # PASSO 2: Buscar Produtos por Linha (GET /api/v1/erp_products/fetch_products_by_cod_linha)
@@ -21,7 +20,13 @@ class HomeController < ApplicationController
     return render json: { error: 'Código da linha é obrigatório' }, status: :bad_request if cod_linha.blank?
 
     response = make_api_request("/api/v1/erp_products/fetch_products_by_cod_linha?cod_linha=#{cod_linha}", 'GET')
-    render json: response
+
+    # Retorna o status HTTP correto baseado na resposta da API
+    if response[:success]
+      render json: response[:body], status: :ok
+    else
+      render json: response[:body], status: response[:status]
+    end
   end
 
   # PASSO 4: Criar Ordem de Produção de Contingência
@@ -65,27 +70,32 @@ class HomeController < ApplicationController
   # Criar produto de contingência (PASSO 3 da doc)
   def create_contingencia_product
     product_data = {
-      contingencia_produto: {
-        cod_pro: params[:cod_pro],
-        des_pro: params[:des_pro],
-        uni_med: params[:uni_med]
-      }
+      cod_pro: params[:cod_pro],
+      des_pro: params[:des_pro],
+      uni_med: params[:uni_med]
     }
+    result = ContingenciaProductService::CreateContingenciaProduct.call(
+      product: ContingenciaProduct.new(product_data)
+    )
 
-    response = make_api_request('/api/v1/contingencia/contingencia_products', 'POST', product_data)
-    render json: response
+    # Retorna o status HTTP correto baseado na resposta da API
+    if result.success?
+      render json: { 'data': 'Produto cadastrado com sucesso!' }, status: :created
+    else
+      render json: { 'error': result.reason }, status: :unprocessable_entity
+    end
   end
 
   # Listar produtos de contingência
   def list_contingencia_products
     response = make_api_request('/api/v1/contingencia/contingencia_products', 'GET')
-    render json: response
+    render json: response[:body], status: response[:status]
   end
 
   # Listar unidades de medida para validação
   def list_unity_measurements
     response = make_api_request('/api/v1/erp_unity_measurements', 'GET')
-    render json: response
+    render json: response[:body], status: response[:status]
   end
 
   private
@@ -119,9 +129,20 @@ class HomeController < ApplicationController
 
     begin
       response = http.request(request)
-      JSON.parse(response.body)
+      parsed_response = JSON.parse(response.body)
+
+      # Retorna o status HTTP junto com o corpo da resposta
+      {
+        status: response.code.to_i,
+        body: parsed_response,
+        success: response.code.to_i >= 200 && response.code.to_i < 300
+      }
     rescue StandardError => e
-      { error: "Erro na requisição: #{e.message}" }
+      {
+        status: 500,
+        body: { error: "Erro na requisição: #{e.message}" },
+        success: false
+      }
     end
   end
 end

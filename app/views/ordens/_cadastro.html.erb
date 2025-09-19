@@ -1,9 +1,6 @@
 <div class="card">
   <div class="card-header">
     <h2 class="card-title">Cadastrar Ordem de Produção</h2>
-    <p class="card-subtitle">
-      Siga o fluxo de contingência conforme documentação
-    </p>
   </div>
 
   <div class="progress-container">
@@ -31,7 +28,7 @@
     <!-- Etapa 1: Seleção de Linha -->
     <div class="form-section active" data-section="1">
       <div class="form-group">
-        <label class="form-label">1️⃣ Selecione a Linha de Produção</label>
+        <label class="form-label">Selecione a Linha de Produção</label>
         <div class="info-panel">
           <div class="title">🏭 Linhas Disponíveis</div>
           <div class="content">
@@ -54,7 +51,14 @@
             Produtos compatíveis com a linha selecionada (busca via relacionamento: produtos → modelos → itens → equipamentos → linhas).
           </div>
         </div>
-        <div class="selection-grid" id="produtosGrid">
+        
+        <!-- Filtro de busca por código -->
+        <div class="form-group">
+          <label class="form-label">🔍 Filtrar por Código</label>
+          <input type="text" id="filtroCodigoProduto" class="form-control" placeholder="Digite o código do produto para filtrar..." onkeyup="filterProducts()">
+        </div>
+        
+        <div class="selection-grid compact-grid" id="produtosGrid">
           <!-- Carregado dinamicamente via JavaScript -->
         </div>
       </div>
@@ -82,7 +86,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Quantidade por Batch</label>
+          <label class="form-label">Quantidade Bateladas</label>
           <input type="number" id="qtdBat" class="form-control" placeholder="Ex: 100.0" step="0.1" min="0.1">
         </div>
       </div>

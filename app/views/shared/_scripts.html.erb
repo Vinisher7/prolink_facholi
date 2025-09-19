@@ -243,7 +243,7 @@ function createLineCard(linha) {
   card.innerHTML = `
     <span class="icon">🏭</span>
     <div class="title">${linha.des_linha || linha.cod_linha}</div>
-    <div class="description">Código: ${linha.cod_linha}<br>Capacidade: ${linha.capacidade || 'N/A'}</div>
+    <div class="description">Código: ${linha.cod_linha}</div>
   `;
   return card;
 }
@@ -300,16 +300,31 @@ function createProductCard(produto) {
   const card = document.createElement('div');
   card.className = 'selection-card';
   card.onclick = () => selectProduct(card, produto);
+  card.dataset.codigo = produto.cod_pro.toLowerCase(); // Para filtro
   card.innerHTML = `
     <span class="icon">📦</span>
     <div class="title">${produto.des_pro}</div>
     <div class="description">
-      Código: ${produto.cod_pro}<br>
-      Unidade: ${produto.uni_med}<br>
-      Modelo: ${produto.cod_mod}
+      <strong>${produto.cod_pro}</strong><br>
+      ${produto.uni_med} | ${produto.cod_mod}
     </div>
   `;
   return card;
+}
+
+// Função para filtrar produtos por código
+function filterProducts() {
+  const filtro = document.getElementById('filtroCodigoProduto').value.toLowerCase();
+  const cards = document.querySelectorAll('#produtosGrid .selection-card');
+  
+  cards.forEach(card => {
+    const codigo = card.dataset.codigo;
+    if (codigo.includes(filtro)) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
 }
 
 function selectProduct(element, produto) {
@@ -789,6 +804,10 @@ async function saveProduto() {
     
     const result = await response.json();
     
+    console.log('🔍 Response status:', response.status);
+    console.log('🔍 Response ok:', response.ok);
+    console.log('🔍 Result data:', result);
+    
     if (response.ok) {
       showAlertProdutos('Produto de contingência criado com sucesso!', 'success');
       clearForm();
@@ -799,6 +818,8 @@ async function saveProduto() {
     } else {
       // Trata diferentes tipos de erro com mensagens específicas
       let errorMessage = 'Erro ao criar produto';
+      
+      console.log('🚨 Erro detectado:', result);
       
       if (result.error) {
         if (Array.isArray(result.error)) {
@@ -813,12 +834,15 @@ async function saveProduto() {
       // Mensagens específicas para erros comuns
       if (errorMessage.includes('cod_pro') && errorMessage.includes('taken')) {
         errorMessage = 'Código do produto já existe! Use um código diferente.';
+      } else if (errorMessage.includes('has already been taken')) {
+        errorMessage = 'Código do produto já existe! Use um código diferente.';
       } else if (errorMessage.includes('Unidade de Medida não encontrada')) {
         errorMessage = 'Unidade de medida inválida! Selecione uma unidade válida.';
       } else if (errorMessage.includes('can\'t be blank')) {
         errorMessage = 'Todos os campos obrigatórios devem ser preenchidos.';
       }
       
+      console.log('📢 Mensagem final:', errorMessage);
       showAlertProdutos(errorMessage, 'danger');
     }
   } catch (error) {

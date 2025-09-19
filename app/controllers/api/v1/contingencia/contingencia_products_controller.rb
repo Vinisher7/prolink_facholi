@@ -2,15 +2,6 @@ class Api::V1::Contingencia::ContingenciaProductsController < Api::V1::Applicati
   before_action :authorize_user!
   include Pagy::Backend
 
-  def create
-    result = ContingenciaProductService::CreateContingenciaProduct.call(
-      product: ContingenciaProduct.new(contingencia_product_params)
-    )
-    return render json: { 'error': result.table[:reason] }, status: :unprocessable_entity unless result.success?
-
-    render json: { 'data': 'Produto cadastrado com sucesso!' }, status: :created
-  end
-
   def index
     pagy, contingencia_products = pagy(ContingenciaProduct.order(created_at: :desc))
 
